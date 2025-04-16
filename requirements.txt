@@ -5,3 +5,4 @@ Werkzeug
 hotqueue
 tabulate
 matplotlib
+pandas

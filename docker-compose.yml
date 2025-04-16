@@ -19,8 +19,7 @@ services:
             - redis-db
         environment:
             - REDIS_HOST=redis-db
-            - REDIS_PORT=6379
-        image: username/flask-neo_api:1.0
+        image: mjt2005/neo_api:1.0
         ports:
             - 5000:5000
         command: ["python", "NEO_api.py"]
@@ -33,5 +32,4 @@ services:
             - redis-db
         environment:
             - REDIS_HOST=redis-db
-            - REDIS_PORT=6379
         command: ["python", "worker.py"]

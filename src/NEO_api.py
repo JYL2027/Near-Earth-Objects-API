@@ -30,33 +30,35 @@ q = HotQueue("queue", host=REDIS_IP, port=6379, db=1)
 jdb = redis.Redis(host=REDIS_IP, port=6379, db=2)
 rdb = redis.Redis(host=REDIS_IP, port=6379, db=3)
 
-@app.route('/data', methods=['POST'])
+@app.route('/data', methods = ['POST'])
 def fetch_neo_data():
     """
 
     """
     try:
-
-
-
-        data = pd.read_csv('NEO Earth Close Approaches.csv')
+        data = pd.read_csv('/app/neo.csv')
+        dict_data = {}
         for idx, row in data.iterrows():
-            rd.hset(row['Close-Approach (CA) Date'], mapping={'Object': row['Object'],'CA DistanceNominal (au)': row['CA DistanceNominal (au)'], 'CA DistanceMinimum (au)':row['CA DistanceMinimum (au)'], 'V relative(km/s)':row['V relative(km/s)'], 'V infinity(km/s)':row['V infinity(km/s)'], 'H(mag)': row['H(mag)'], 'Diameter':row['Diameter'],'Rarity': row['Rarity'] })
-        
-        # # Parse CSV and store in Redis
-        # neo_data = {"objects": []}
-        # with open('NEO Earth Close Approaches.csv', newline='', encoding='utf-8') as f:
-        #     reader = csv.DictReader(f)
-        #     for row in reader:
-        #         neo_data["objects"].append(dict(row))
-        #         key = row["Close-Approach (CA) Date"]
-        #         rd.set(key, json.dumps(row))
-
-        # return f"Stored {len(neo_data['objects'])} NEO entries in Redis.\n"
+            dict_data = {'Object': row['Object'],'CA DistanceNominal (au)': row['CA DistanceNominal (au)'], 'CA DistanceMinimum (au)':row['CA DistanceMinimum (au)'], 'V relative(km/s)':row['V relative(km/s)'], 'V infinity(km/s)':row['V infinity(km/s)'], 'H(mag)': row['H(mag)'], 'Diameter':row['Diameter'],'Rarity': row['Rarity'] }
+            rd.set(row['Close-Approach (CA) Date'], dict_data)
+        if rd.scan():
+            return 'success loading data'
 
     except Exception as e:
         logging.error(f"Error fetching NEO data: {e}")
         return f"Error fetching data: {e}\n"
+
+@app.route('/data', methods = ['GET'])
+def return_neo_data():
+    dat = {}
+    for idx, hash in rd.scan(match='*'):
+        hash = hash.decode('utf-8')
+        vals = rd.hgetall(hash).decode('utf-8')
+        dat[hash] = vals
+    return dat
+
+
+    return rd.hgetall()
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
