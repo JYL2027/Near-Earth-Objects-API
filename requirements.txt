@@ -4,3 +4,4 @@ redis
 Werkzeug
 hotqueue
 tabulate
+matplotlib
