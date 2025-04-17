@@ -39,10 +39,10 @@ def fetch_neo_data():
         data = pd.read_csv('/app/neo.csv')
         dict_data = {}
         for idx, row in data.iterrows():
-            dict_data = {'Object': row['Object'],'CA DistanceNominal (au)': row['CA DistanceNominal (au)'], 'CA DistanceMinimum (au)':row['CA DistanceMinimum (au)'], 'V relative(km/s)':row['V relative(km/s)'], 'V infinity(km/s)':row['V infinity(km/s)'], 'H(mag)': row['H(mag)'], 'Diameter':row['Diameter'],'Rarity': row['Rarity'] }
+            dict_data = json.dumps({'Object' : row['Object'],'CA DistanceNominal (au)' : row['CA DistanceNominal (au)'], 'CA DistanceMinimum (au)' : row['CA DistanceMinimum (au)'], 'V relative(km/s)' : row['V relative(km/s)'], 'V infinity(km/s)':  row['V infinity(km/s)'], 'H(mag)' : row['H(mag)'], 'Diameter' : row['Diameter'],'Rarity' : row['Rarity']}, sort_keys=True)
             rd.set(row['Close-Approach (CA) Date'], dict_data)
         if rd.scan():
-            return 'success loading data'
+            return 'success loading data\n'
 
     except Exception as e:
         logging.error(f"Error fetching NEO data: {e}")
@@ -51,9 +51,8 @@ def fetch_neo_data():
 @app.route('/data', methods = ['GET'])
 def return_neo_data():
     dat = {}
-    for idx, hash in rd.scan(match='*'):
-        hash = hash.decode('utf-8')
-        vals = rd.hgetall(hash).decode('utf-8')
+    for key in rd.keys('*'):
+        
         dat[hash] = vals
     return dat
 
