@@ -153,5 +153,26 @@ def get_distances() -> Response:
         logging.error(f"Error in get_distances: {str(e)}")
         return jsonify("Error in getting distance")
     
+@app.route('/data/velocity_query', methods= ['GET'])
+def query_velocity():
+    min_velocity = float(request.args.get('min'))
+    max_velocity = float(request.args.get('max'))
+
+    dat = {}
+    
+    for key in rd.keys('*'):
+        key = key.decode('utf-8')
+        neo = json.loads(rd.get(key).decode('utf-8'))
+
+        if min_velocity <= float(neo.get('V relative(km/s)')) <= max_velocity:
+            dat[key] = json.loads(rd.get(key).decode('utf-8'))
+
+    return dat
+
+
+
+
+
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
