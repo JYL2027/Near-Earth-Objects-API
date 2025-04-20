@@ -72,6 +72,20 @@ def delete_neo_data():
         return 'Database flushed\n'
     else:
         return "Database failed to clear\n"
+    
+@app.route('/data/date', methods = ['GET'])
+def get_year() -> list:
+    '''
+    This function returns all of the years and time values.
+    Args:
+        None
+    Returns: A flask response containing the years/time as a list
+    '''
+    years = []
+    for key in rd.keys('*'):
+        key = key.decode('utf-8')
+        years.append(key)
+    return years
 
 @app.route('/data/<year>', methods = ['GET'])
 def get_data_by_year(year):
@@ -88,8 +102,56 @@ def get_data_by_year(year):
         if key.split('-')[0] == year:
             dat[key] = json.loads(rd.get(key).decode('utf-8'))
     return dat
+
+@app.route('/data/distance', methods=['GET'])
+def get_distances() -> Response:
+    """
+    Get all close-approach distances with optional filtering
     
-
-
+    Query Parameters:
+        min (float): Minimum distance in AU
+        max (float): Maximum distance in AU
+        
+    Returns:
+        JSON response with number of results and list of NEOs with their approach dates and distances
+    """
+    try:
+        # Parse optional query parameters
+        min_dist = request.args.get('min', type=float)
+        max_dist = request.args.get('max', type=float)
+        
+        results = []
+        
+        for key in rd.keys('*'):
+            key = key.decode('utf-8')
+            neo = json.loads(rd.get(key).decode('utf-8'))
+            
+            try:
+                # Get distance
+                distance = float(neo.get('CA DistanceNominal (au)') or neo.get('CA DistanceMinimum (au)', 0))
+            except (ValueError, TypeError):
+                continue
+                
+            # Apply filters
+            if min_dist is not None and distance < min_dist:
+                continue
+            if max_dist is not None and distance > max_dist:
+                continue
+                
+            results.append({
+                'date': key,
+                'object': neo.get('Object', 'Unknown'),
+                'distance_au': distance,
+            })
+        
+        return jsonify({
+            'count': len(results),
+            'results': results
+        })
+        
+    except Exception as e:
+        logging.error(f"Error in get_distances: {str(e)}")
+        return jsonify("Error in getting distance")
+    
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
