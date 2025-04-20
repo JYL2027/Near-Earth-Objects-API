@@ -88,7 +88,6 @@ def get_data_by_year(year):
         if key.split('-')[0] == year:
             dat[key] = json.loads(rd.get(key).decode('utf-8'))
     return dat
-
     
 
 
