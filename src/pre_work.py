@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 def create_min_diam_column(row):
     if not pd.isna(row):
@@ -14,7 +15,7 @@ def create_min_diam_column(row):
             min = d[0]
             return min
     else:
-        return None
+        return np.nan
     
 def create_max_diam_column(row):
     if not pd.isna(row):
@@ -30,7 +31,7 @@ def create_max_diam_column(row):
             max_diam = d[-2]
             return max_diam
     else:
-        return None
+        return np.nan
         
 
 
