@@ -14,6 +14,7 @@ from hotqueue import HotQueue
 import pandas as pd
 from jobs import add_job, get_job_by_id, get_job_result
 from flask import Flask, jsonify, request, Response
+from pre_work import create_min_diam_column, create_max_diam_column
 
 # Initialize app
 app = Flask(__name__)
@@ -41,8 +42,12 @@ def fetch_neo_data():
     """
     try:
         data = pd.read_csv('/app/neo.csv')
+        
+        data['Minimum Diameter'] = data['Diameter'].apply(create_min_diam_column)
+        data['Maximum Diameter'] = data['Diameter'].apply(create_max_diam_column)
+        
         for idx, row in data.iterrows():
-            dict_data = {'Object' : row['Object'],'CA DistanceNominal (au)' : row['CA DistanceNominal (au)'], 'CA DistanceMinimum (au)' : row['CA DistanceMinimum (au)'], 'V relative(km/s)' : row['V relative(km/s)'], 'V infinity(km/s)':  row['V infinity(km/s)'], 'H(mag)' : row['H(mag)'], 'Diameter' : row['Diameter'],'Rarity' : row['Rarity']}
+            dict_data = {'Object' : row['Object'],'CA DistanceNominal (au)' : row['CA DistanceNominal (au)'], 'CA DistanceMinimum (au)' : row['CA DistanceMinimum (au)'], 'V relative(km/s)' : row['V relative(km/s)'], 'V infinity(km/s)':  row['V infinity(km/s)'], 'H(mag)' : row['H(mag)'], 'Diameter' : row['Diameter'],'Rarity' : row['Rarity'], 'Minimum Diameter' : row['Minimum Diameter'], 'Maximum Diameter' : row['Maximum Diameter']}
             rd.set(row['Close-Approach (CA) Date'], json.dumps(dict_data, sort_keys=True))
         if len(rd.keys('*')) == len(data):
             return 'success loading data\n'
