@@ -294,6 +294,17 @@ def check_result(jobid : str) -> Response:
 
 @app.route('/data/max_diam/<max_diameter>', methods=['GET'])
 def query_diameter(max_diameter):
+    """
+        This function is for an API endpoint. Given a max diameter, this route will find all
+        the NEOs that are less than the input.
+
+        Args:
+            max_diameter: type - float/int. Upper bound for diameter
+
+        Returns:
+            All the NEOs less than the max_diameter. Compares the input
+            to the max diameter of each NEO since it is a range.
+    """
     max_diameter = float(max_diameter)
     results = {}
 
@@ -314,6 +325,16 @@ def query_diameter(max_diameter):
 
 @app.route('/data/biggest_neos/<count>', methods=['GET'])
 def find_biggest_neo(count):
+    """
+        This function is for an API endpoint. Given input, it will 
+        find the x biggest NEOs based on the H scale.
+
+        Args:
+            count: type - int. How many NEOs you want returned
+
+        Returns:
+            List of dictionaries of count number of NEOs 
+    """
     num_neo = int(count)
     dat = []
     for key in rd.keys('*'):
