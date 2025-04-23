@@ -7,6 +7,7 @@ import socket
 import uuid
 import os
 import csv
+import numpy as np
 import sys
 import io
 import time
@@ -290,6 +291,43 @@ def check_result(jobid : str) -> Response:
         return jsonify("No result found")
 
     return Response(result)
+
+@app.route('/data/max_diam/<max_diameter>', methods=['GET'])
+def query_diameter(max_diameter):
+    max_diameter = float(max_diameter)
+    results = {}
+
+    for key in rd.keys('*'):
+        key_str = key.decode('utf-8')
+        neo = json.loads(rd.get(key).decode('utf-8'))
+
+        diam_str = neo.get('Maximum Diameter')
+        if diam_str:
+            try:
+                diam = float(diam_str)
+                if diam <= max_diameter:
+                    results[key_str] = neo
+            except (ValueError, TypeError):
+                continue  # skip if diameter isn't parseable
+
+    return jsonify(results)
+
+@app.route('/data/biggest_neos/<count>', methods=['GET'])
+def find_biggest_neo(count):
+    num_neo = int(count)
+    dat = []
+    for key in rd.keys('*'):
+        key_str = key.decode('utf-8')
+        value = json.loads(rd.get(key).decode('utf-8'))
+        dat.append({key_str: value})
+    
+    def get_score(d):
+        time_key = next(iter(d))
+        return d[time_key].get("H(mag)", float('inf'))  # default if score missing
+    
+    sorted_data = sorted(dat, key=get_score)
+    limit_data = sorted_data[:num_neo]
+    return jsonify(limit_data)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
