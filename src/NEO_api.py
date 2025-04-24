@@ -374,32 +374,32 @@ def get_timeliest_neos(count):
         key = key.decode('utf-8')
         dat[key] = json.loads(rd.get(key).decode('utf-8'))
     
-    
-    # ordered_json_dat = json.dumps(dat, sort_keys=True)
-    # ordered_dict_dat = json.loads(ordered_json_dat)
 
     #logging.info(ordered_dict_dat)
 
+    # initialize dict to hold cleaned keys (without the uncertainty part)
     cleaned_dict = {}
 
+    # loop thru keys and clean them, saving them to new dict where values are its original values
     for i in dat.keys():
         clean_time = i.split("\\")[0].split('±')[0].rstrip()
-        #print(i)
         cleaned_dict[clean_time] = dat.get(i)
 
-    
+    # initialize list to hold all future timestamps
     future_keys_clean = []
 
     for i in cleaned_dict.keys():
         dt = datetime.strptime(i, "%Y-%b-%d %H:%M")
+        # if date of timestamp is greater than current time, add it to list
         if current_time <= dt:
             future_keys_clean.append(i)
 
+    # sort future keys based on timestamp
     sorted_keys = sorted(future_keys_clean, key=lambda x: datetime.strptime(x, "%Y-%b-%d %H:%M"))
-    
-    logging.info(bool("2025-Apr-25 15:45" in sorted_keys))
-    logging.info(bool('2025-May-01 22:18' in sorted_keys))
+
+    # initalize final results dict
     results = {}
+    # find first n keys and return that
     for j in sorted_keys[:num_neo]:
         results[j] = cleaned_dict.get(j)
     
