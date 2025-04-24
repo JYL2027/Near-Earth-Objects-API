@@ -355,26 +355,37 @@ def find_biggest_neo(count):
 
 @app.route('/now/<count>', methods = ['GET'])
 def get_timeliest_neos(count):
+    ''' 
+    This function returns the n closest NEO's in time to right now.
+        Args:
+            count - the number of closest NEO's the user wants to return
+        Returns:
+            results (JSON) - a JSON dictionary contanining the n closest NEO's in time
+    '''
+    # convert count to int
     num_neo = int(count)
+    # get current time
     current_time = datetime.now(timezone.utc).replace(microsecond=0, tzinfo=None)
     logging.info(current_time)
+    # intialize empty dict to hold full data
     dat = {}
-
+    # retrive all data from redis
     for key in rd.keys('*'):
         key = key.decode('utf-8')
         dat[key] = json.loads(rd.get(key).decode('utf-8'))
     
-    ordered_json_dat = json.dumps(dat, sort_keys=True)
-    ordered_dict_dat = json.loads(ordered_json_dat)
+    
+    # ordered_json_dat = json.dumps(dat, sort_keys=True)
+    # ordered_dict_dat = json.loads(ordered_json_dat)
 
     #logging.info(ordered_dict_dat)
 
     cleaned_dict = {}
 
-    for i in ordered_dict_dat.keys():
+    for i in dat.keys():
         clean_time = i.split("\\")[0].split('±')[0].rstrip()
         #print(i)
-        cleaned_dict[clean_time] = ordered_dict_dat.get(i)
+        cleaned_dict[clean_time] = dat.get(i)
 
     
     future_keys_clean = []
@@ -384,7 +395,10 @@ def get_timeliest_neos(count):
         if current_time <= dt:
             future_keys_clean.append(i)
 
-    sorted_keys = sorted(future_keys_clean)
+    sorted_keys = sorted(future_keys_clean, key=lambda x: datetime.strptime(x, "%Y-%b-%d %H:%M"))
+    
+    logging.info(bool("2025-Apr-25 15:45" in sorted_keys))
+    logging.info(bool('2025-May-01 22:18' in sorted_keys))
     results = {}
     for j in sorted_keys[:num_neo]:
         results[j] = cleaned_dict.get(j)
