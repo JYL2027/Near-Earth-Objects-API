@@ -11,18 +11,18 @@ import numpy as np
 import sys
 import io
 import time
+import pprint
+from datetime import datetime, timezone
 from hotqueue import HotQueue
 import pandas as pd
 from jobs import add_job, get_job_by_id, get_job_result
 from flask import Flask, jsonify, request, Response
 from pre_work import create_min_diam_column, create_max_diam_column
 
-# Initialize app
-app = Flask(__name__)
+# set logging
+# format_str=f'[%(asctime)s {socket.gethostname()}] %(filename)s:%(funcName)s:%(lineno)s - %(levelname)s: %(message)s'
+logging.basicConfig(level='DEBUG')
 
-# Set logging
-format_str=f'[%(asctime)s {socket.gethostname()}] %(filename)s:%(funcName)s:%(lineno)s - %(levelname)s: %(message)s'
-logging.basicConfig(level=logging.ERROR, format = format_str)
 
 REDIS_IP = os.environ.get("REDIS_HOST", "redis-db")
 
@@ -31,6 +31,9 @@ rd = redis.Redis(host=REDIS_IP, port=6379, db=0)
 q = HotQueue("queue", host=REDIS_IP, port=6379, db=1)
 jdb = redis.Redis(host=REDIS_IP, port=6379, db=2)
 rdb = redis.Redis(host=REDIS_IP, port=6379, db=3)
+
+# Initialize app
+app = Flask(__name__)
 
 @app.route('/data', methods = ['POST'])
 def fetch_neo_data():
@@ -69,7 +72,7 @@ def return_neo_data():
         except:
             logging.error(f'Error retrieving data at {key}')
         
-    return json.dumps(dat)
+    return json.dumps(dat, ensure_ascii=False, sort_keys=True)
 
 @app.route('/data', methods = ["DELETE"])
 def delete_neo_data():
@@ -349,6 +352,48 @@ def find_biggest_neo(count):
     sorted_data = sorted(dat, key=get_score)
     limit_data = sorted_data[:num_neo]
     return jsonify(limit_data)
+
+@app.route('/now/<count>', methods = ['GET'])
+def get_timeliest_neos(count):
+    num_neo = int(count)
+    current_time = datetime.now(timezone.utc).replace(microsecond=0, tzinfo=None)
+    logging.info(current_time)
+    dat = {}
+
+    for key in rd.keys('*'):
+        key = key.decode('utf-8')
+        dat[key] = json.loads(rd.get(key).decode('utf-8'))
+    
+    ordered_json_dat = json.dumps(dat, sort_keys=True)
+    ordered_dict_dat = json.loads(ordered_json_dat)
+
+    #logging.info(ordered_dict_dat)
+
+    cleaned_dict = {}
+
+    for i in ordered_dict_dat.keys():
+        clean_time = i.split("\\")[0].split('±')[0].rstrip()
+        #print(i)
+        cleaned_dict[clean_time] = ordered_dict_dat.get(i)
+
+    closest_time = datetime.strptime(list(cleaned_dict.keys())[-1], "%Y-%b-%d %H:%M") # use first epoch in Redis as sample time
+    
+    logging.info(closest_time)
+
+
+    for i in cleaned_dict.keys():
+        dt = datetime.strptime(i, "%Y-%b-%d %H:%M")
+        if current_time <= dt <= closest_time:
+            closest_time = dt
+            key_to_use = i
+    
+    return json.dumps(cleaned_dict.get(key_to_use))
+
+
+
+    
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

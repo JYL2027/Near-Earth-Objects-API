@@ -32,8 +32,3 @@ def create_max_diam_column(row):
             return max_diam
     else:
         return np.nan
-        
-
-
-
-
