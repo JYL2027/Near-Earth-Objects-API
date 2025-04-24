@@ -51,7 +51,7 @@ def fetch_neo_data():
         data['Maximum Diameter'] = data['Diameter'].apply(create_max_diam_column)
         
         for idx, row in data.iterrows():
-            dict_data = {'Object' : row['Object'],'CA DistanceNominal (au)' : row['CA DistanceNominal (au)'], 'CA DistanceMinimum (au)' : row['CA DistanceMinimum (au)'], 'V relative(km/s)' : row['V relative(km/s)'], 'V infinity(km/s)':  row['V infinity(km/s)'], 'H(mag)' : row['H(mag)'], 'Diameter' : row['Diameter'],'Rarity' : row['Rarity'], 'Minimum Diameter' : row['Minimum Diameter'], 'Maximum Diameter' : row['Maximum Diameter']}
+            dict_data = {'Object' : row['Object'], 'Close-Approach (CA) Date' : row['Close-Approach (CA) Date'], 'CA DistanceNominal (au)' : row['CA DistanceNominal (au)'], 'CA DistanceMinimum (au)' : row['CA DistanceMinimum (au)'], 'V relative(km/s)' : row['V relative(km/s)'], 'V infinity(km/s)':  row['V infinity(km/s)'], 'H(mag)' : row['H(mag)'], 'Diameter' : row['Diameter'],'Rarity' : row['Rarity'], 'Minimum Diameter' : row['Minimum Diameter'], 'Maximum Diameter' : row['Maximum Diameter']}
             rd.set(row['Close-Approach (CA) Date'], json.dumps(dict_data, sort_keys=True))
         if len(rd.keys('*')) == len(data):
             return 'success loading data\n'
@@ -376,18 +376,20 @@ def get_timeliest_neos(count):
         #print(i)
         cleaned_dict[clean_time] = ordered_dict_dat.get(i)
 
-    closest_time = datetime.strptime(list(cleaned_dict.keys())[-1], "%Y-%b-%d %H:%M") # use first epoch in Redis as sample time
     
-    logging.info(closest_time)
-
+    future_keys_clean = []
 
     for i in cleaned_dict.keys():
         dt = datetime.strptime(i, "%Y-%b-%d %H:%M")
-        if current_time <= dt <= closest_time:
-            closest_time = dt
-            key_to_use = i
+        if current_time <= dt:
+            future_keys_clean.append(i)
+
+    sorted_keys = sorted(future_keys_clean)
+    results = {}
+    for j in sorted_keys[:num_neo]:
+        results[j] = cleaned_dict.get(j)
     
-    return json.dumps(cleaned_dict.get(key_to_use))
+    return json.dumps(results)
 
 
 
