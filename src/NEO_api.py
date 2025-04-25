@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from hotqueue import HotQueue
 import pandas as pd
 from jobs import add_job, get_job_by_id, get_job_result
-from flask import Flask, jsonify, request, Response
+from flask import Flask, jsonify, request, Response, send_file
 from pre_work import create_min_diam_column, create_max_diam_column
 
 # set logging
@@ -405,7 +405,37 @@ def get_timeliest_neos(count):
     
     return json.dumps(results)
 
+@app.route('/results/<job_id>', methods = ['GET'])
+def get_results(job_id : str) -> Response:
+    '''
+    This function returns the output of the job given a specific ID
+        Args:
+            job_id (str) - a specific job ID
+        Returns:
+            output.png (image) - the plot that the job generates, saved to the working directory 
+    '''
+    
+    if not rdb.get(f"{job_id}_output_plot"):
+        return 'Job ID not found\n'
+    
+    if get_job_by_id(job_id)['status'] == 'complete': # check for completion
+        try:
+            with open("output.png", 'wb') as f: # open new file to store image bytes and write to it
+                f.write(rdb.get(f"{job_id}_output_plot"))
+        except:
+            logging.error(f'Could not open new file to write bytes to')
+            return "error"
+        return send_file("output.png", mimetype='image/png', as_attachment=True) # send bytes for putput png to output stream
+    else:
+        return "Job still in progress"
 
+
+# @app.route('/help', methods = ["GET"])
+# def get_help():
+
+#     help = "cURL routes:" \
+#     " To view data: "
+        
 
     
 

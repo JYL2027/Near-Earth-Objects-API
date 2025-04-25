@@ -7,7 +7,7 @@ import socket
 import os
 from tabulate import tabulate
 import re
-import matplotlib as plt
+import matplotlib.pyplot as plt
 from io import BytesIO
 from datetime import datetime
 from hotqueue import HotQueue
@@ -80,14 +80,24 @@ def do_work(jobid):
         plt.grid(True)
 
         # Save plot to image buffer and store in Redis
-        img_bytes = BytesIO()
-        plt.savefig(img_bytes, format='png')
-        img_bytes.seek(0)
-        rdb.set(jobid, img_bytes.read())
-        plt.close()
-
+        plt.savefig(f'/app/{jobid}_plot.png')
         update_job_status(jobid, "complete")
-        print(f"Job {jobid} complete.")
+        logging.info(f"Job {jobid} complete.")
+        try:
+            file_bytes = open(f'/app/{jobid}_plot.png', 'rb').read() # read in image as bytes
+            logging.info('read plot in..')
+        except:
+            if not file_bytes:
+                logging.error('error producing output file')
+            else:
+                logging.error('error reading output file')
+        # set the file bytes as a key in Redis
+        try:
+            # set key value pair to odb where key is name of plot and value is its data in bytes
+            rdb.set(f"{jobid}_output_plot", file_bytes) 
+            logging.info('saved output file to odb')
+        except:
+            logging.error('error pushing output file to Redis')
 
     except Exception as e:
         logging.error(f"Error processing job {jobid}: {str(e)}")
