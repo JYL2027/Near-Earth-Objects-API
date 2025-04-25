@@ -46,6 +46,9 @@ def fetch_neo_data():
     """
     try:
         data = pd.read_csv('/app/neo.csv')
+    except FileNotFoundError:
+        return 'NEO file not found'
+    try:
         
         data['Minimum Diameter'] = data['Diameter'].apply(create_min_diam_column)
         data['Maximum Diameter'] = data['Diameter'].apply(create_max_diam_column)
@@ -105,6 +108,9 @@ def get_data_by_year(year):
         Returns:
             dat (dict) - subset of the data
     '''
+    if not year.isnumeric():
+        return 'invalid year entered'
+    
     dat = {}
     for key in rd.keys('*'):
         key = key.decode('utf-8')
@@ -164,8 +170,15 @@ def get_distances() -> Response:
     
 @app.route('/data/velocity_query', methods= ['GET'])
 def query_velocity():
+    
+    if not (request.args.get('min').isnumeric() and request.args.get('max').isnumeric()):
+        return 'invalid date range entered'
+    
     min_velocity = float(request.args.get('min'))
     max_velocity = float(request.args.get('max'))
+
+    if min_velocity > max_velocity:
+        return 'min velocity must be less than max velocity'
 
     dat = {}
     
@@ -403,7 +416,7 @@ def get_timeliest_neos(count):
     for j in sorted_keys[:num_neo]:
         results[j] = cleaned_dict.get(j)
     
-    return json.dumps(results)
+    return results
 
 @app.route('/results/<job_id>', methods = ['GET'])
 def get_results(job_id : str) -> Response:
