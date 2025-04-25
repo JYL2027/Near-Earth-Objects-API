@@ -9,6 +9,7 @@ from tabulate import tabulate
 import re
 import matplotlib as plt
 from io import BytesIO
+from datetime import datetime
 from hotqueue import HotQueue
 from jobs import update_job_status, store_job_result
 
@@ -28,35 +29,49 @@ logging.basicConfig(level=logging.ERROR, format=format_str)
 @q.worker
 def do_work(jobid):
     """
-    Worker function to generate a relative velocity vs. distance scatter plot.
-    Stores the image as a byte array in Redis result DB.
+    This worker function to generate a relative velocity vs. distance scatter plot and stores the image in Redis
+
+    Args:
+        The jobid as a string
+
+    Return:
+        None
     """
+
     try:
         print(f"Starting job {jobid}")
         update_job_status(jobid, "in progress")
 
         job_data = json.loads(jdb.get(jobid))
-        start_date = job_data['start_date']
-        end_date = job_data['end_date']
+        start_date = datetime.strptime(job_data['start_date'], "%Y-%b-%d %H:%M")
+        end_date = datetime.strptime(job_data['end_date'], "%Y-%b-%d %H:%M")
 
-        # Collect relevant NEO data between start and end dates
         velocities = []
         distances = []
 
         for key in rd.keys('*'):
             key_str = key.decode('utf-8')
-            if start_date <= key_str <= end_date:
-                neo = json.loads(rd.get(key).decode('utf-8'))
 
+            try:
+                clean_date = key_str.split("\\")[0].split('±')[0].strip()
+                date_obj = datetime.strptime(clean_date, "%Y-%b-%d %H:%M")
+            except Exception as e:
+                logging.error(f"Skipping key {key_str}: invalid datetime format")
+                continue
+
+            if start_date <= date_obj <= end_date:
                 try:
+                    neo = json.loads(rd.get(key).decode('utf-8'))
                     velocity = float(neo.get("V relative(km/s)", 0))
                     distance = float(neo.get("CA DistanceNominal (au)") or neo.get("CA DistanceMinimum (au)", 0))
+
                     velocities.append(velocity)
                     distances.append(distance)
-                except (ValueError, TypeError):
+                except (ValueError, TypeError, json.JSONDecodeError) as e:
+                    logging.warning(f"Skipping key {key_str} due to error: {e}")
                     continue
 
-        # Generate plot
+        # Generate scatter plot
         plt.figure(figsize=(10, 6))
         plt.scatter(distances, velocities, alpha=0.7, edgecolors='k')
         plt.title('Relative Velocity vs. Close-Approach Distance')
@@ -64,7 +79,7 @@ def do_work(jobid):
         plt.ylabel('Relative Velocity (km/s)')
         plt.grid(True)
 
-        # Save to Redis
+        # Save plot to image buffer and store in Redis
         img_bytes = BytesIO()
         plt.savefig(img_bytes, format='png')
         img_bytes.seek(0)
@@ -75,7 +90,7 @@ def do_work(jobid):
         print(f"Job {jobid} complete.")
 
     except Exception as e:
-        print(f"Error processing job {jobid}: {str(e)}")
+        logging.error(f"Error processing job {jobid}: {str(e)}")
         update_job_status(jobid, "failed")
 
 if __name__ == "__main__":
