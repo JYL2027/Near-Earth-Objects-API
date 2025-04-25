@@ -23,7 +23,7 @@ rdb = redis.Redis(host=REDIS_IP, port=6379, db=3)
 
 # Set logging
 format_str=f'[%(asctime)s {socket.gethostname()}] %(filename)s:%(funcName)s:%(lineno)s - %(levelname)s: %(message)s'
-logging.basicConfig(level=logging.ERROR, format=format_str)
+logging.basicConfig(level= 'DEBUG', format=format_str)
 
 
 @q.worker
