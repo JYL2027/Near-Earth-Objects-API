@@ -55,10 +55,10 @@ def fetch_neo_data():
         
         for idx, row in data.iterrows():
             dict_data = {'Object' : row['Object'], 'Close-Approach (CA) Date' : row['Close-Approach (CA) Date'], 'CA DistanceNominal (au)' : row['CA DistanceNominal (au)'], 'CA DistanceMinimum (au)' : row['CA DistanceMinimum (au)'], 'V relative(km/s)' : row['V relative(km/s)'], 'V infinity(km/s)':  row['V infinity(km/s)'], 'H(mag)' : row['H(mag)'], 'Diameter' : row['Diameter'],'Rarity' : row['Rarity'], 'Minimum Diameter' : row['Minimum Diameter'], 'Maximum Diameter' : row['Maximum Diameter']}
+            
             original_date = row['Close-Approach (CA) Date']
-            normalized_date = original_date.replace('\u00a0', ' ')
-            normalized_date = ''.join(c for c in normalized_date if ord(c) < 128)
-            key = f"neo:{normalized_date}"
+            date_only = original_date.split()[0]
+            key = f"{date_only}"
 
             rd.set(key, json.dumps(dict_data, sort_keys=True))
         if len(rd.keys('*')) == len(data):
