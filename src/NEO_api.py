@@ -56,20 +56,12 @@ def fetch_neo_data():
         for idx, row in data.iterrows():
             dict_data = {'Object' : row['Object'], 'Close-Approach (CA) Date' : row['Close-Approach (CA) Date'], 'CA DistanceNominal (au)' : row['CA DistanceNominal (au)'], 'CA DistanceMinimum (au)' : row['CA DistanceMinimum (au)'], 'V relative(km/s)' : row['V relative(km/s)'], 'V infinity(km/s)':  row['V infinity(km/s)'], 'H(mag)' : row['H(mag)'], 'Diameter' : row['Diameter'],'Rarity' : row['Rarity'], 'Minimum Diameter' : row['Minimum Diameter'], 'Maximum Diameter' : row['Maximum Diameter']}
             
-            original_date = row['Close-Approach (CA) Date']
-            try:
-                # Parse full string 
-                parsed_date = datetime.strptime(original_date.split('±')[0].strip(), "%Y-%b-%d %H:%M")
-                date_only = parsed_date.strftime("%Y-%b-%d") 
-                date_only = date_only[:11]
-            except Exception as e:
-                date_only = original_date.split()[0]
-                logging.debug(f"Could not add date {e}")
-            key = f"{date_only}"
+            rd.set(row['Close-Approach (CA) Date'], dict_data)
 
-            rd.set(key, json.dumps(dict_data, sort_keys=True))
-        
-        return 'Date loaded into redis \n'
+        if len(rd.keys('*')) == len(data):
+            return 'success loading data\n'
+        else:
+            return 'failed to load all data into redis'
     except Exception as e:
         logging.error(f"Error downloading NEO data: {e}")
         return f"Error fetching data: {e}\n"
