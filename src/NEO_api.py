@@ -227,8 +227,8 @@ def create_job() -> Response:
         # Decode the Key
         ID.append(key.decode('utf-8'))
 
-    if start_date not in ID or end_date not in ID:
-            return jsonify("Error: invalid HGNC ID's or no Data in Redis")
+    if ID is None:
+            return jsonify("Error: no Data in Redis")
     
     # Add a job
     job = add_job(start_date, end_date)
