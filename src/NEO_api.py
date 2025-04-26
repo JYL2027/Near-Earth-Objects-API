@@ -64,14 +64,12 @@ def fetch_neo_data():
                 date_only = date_only[:11]
             except Exception as e:
                 date_only = original_date.split()[0]
-                logging.debug(f"Could not add {e}")
+                logging.debug(f"Could not add date {e}")
             key = f"{date_only}"
 
             rd.set(key, json.dumps(dict_data, sort_keys=True))
-        if len(rd.keys('*')) == len(data):
-            return 'success loading data\n'
-        else:
-            return 'failed to load all data into redis'
+        
+        return 'Date loaded into redis \n'
     except Exception as e:
         logging.error(f"Error downloading NEO data: {e}")
         return f"Error fetching data: {e}\n"
