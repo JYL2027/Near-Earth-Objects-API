@@ -280,34 +280,6 @@ def get_job(jobid: str) -> Response:
     
     return jsonify(job)
 
-@app.route('/results/<jobid>', methods = ['GET'])
-def check_result(jobid : str) -> Response:
-    """
-    This function given a jobid will retrieve the job results or to see if the job is still in progress.
-
-    Args:
-
-        jobid is the ID of the job you want to get information about as a string
-
-    Returns:
-        Returns the results of a job as a Flask response
-    """
-
-    job = get_job_by_id(jobid)
-    result = get_job_result(jobid)
-    logging.debug("Retrieved job and result")
-    
-    if not job:
-        return jsonify("Error job not found")
-    
-    if job["status"] != "complete":
-        return jsonify(f"Job {jobid} is still in progress.")
-
-    if not result:
-        return jsonify("No result found")
-
-    return Response(result)
-
 @app.route('/data/max_diam/<max_diameter>', methods=['GET'])
 def query_diameter(max_diameter):
     """
