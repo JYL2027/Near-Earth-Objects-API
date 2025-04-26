@@ -39,42 +39,83 @@ def do_work(jobid):
     """
 
     try:
-        print(f"Starting job {jobid}")
+        logging.info(f"Starting job {jobid}")
         update_job_status(jobid, "in progress")
 
-        job_data = json.loads(jdb.get(jobid))
-        start_date_str = job_data.get('start_date')
-        end_date_str = job_data.get('end_date')
-        
+    
         try:
-            start_date = datetime.strptime(start_date_str, "%Y-%b-%d %H:%M")
-        except ValueError:
-                start_date = datetime.strptime(start_date_str, "%Y-%b-%d")
-                
-        try:
-            end_date = datetime.strptime(end_date_str, "%Y-%b-%d %H:%M")
-        except ValueError:
-            end_date = datetime.strptime(end_date_str, "%Y-%b-%d")
+            job_raw = jdb.get(jobid)
+            if not job_raw:
+                raise ValueError("Job data not found in Redis")
+            
+            job_data = json.loads(job_raw)
+            start_date_str = job_data.get('start_date')
+            end_date_str = job_data.get('end_date')
+            
+            if not all([start_date_str, end_date_str]):
+                raise ValueError("Missing start_date or end_date")
 
+            # Flexible date parsing
+            def parse_date(date_str):
+                for fmt in ["%Y-%b-%d %H:%M", "%Y-%b-%d"]:
+                    try:
+                        return datetime.strptime(date_str.split('±')[0].strip(), fmt)
+                    except ValueError:
+                        continue
+                raise ValueError(f"Unrecognized date format: {date_str}")
+
+            start_date = parse_date(start_date_str)
+            end_date = parse_date(end_date_str)
+
+        except Exception as e:
+            raise ValueError(f"Invalid job data: {str(e)}")
+
+        
         velocities = []
         distances = []
+        processed_count = 0
 
         for key in rd.keys('*'):
-            key_str = key.decode('utf-8')
-
-
-            if start_date <= date_obj <= end_date:
-                try:
-                    neo = json.loads(rd.get(key).decode('utf-8'))
-                    velocity = float(neo.get("V relative(km/s)", 0))
-                    distance = float(neo.get("CA DistanceNominal (au)") or neo.get("CA DistanceMinimum (au)", 0))
-
-                    velocities.append(velocity)
-                    distances.append(distance)
-                except (ValueError, TypeError, json.JSONDecodeError) as e:
-                    logging.warning(f"Skipping key {key_str} due to error: {e}")
+            try:
+                key_str = key.decode('utf-8')
+                neo_raw = rd.get(key)
+                if not neo_raw:
                     continue
 
+                neo = json.loads(neo_raw.decode('utf-8'))
+                neo_date_str = neo.get('Close-Approach (CA) Date', '')
+                
+                if not neo_date_str:
+                    continue
+
+                # Parse NEO date
+                try:
+                    neo_date = parse_date(neo_date_str)
+                except ValueError as e:
+                    logging.warning(f"Skipping {key_str}: {str(e)}")
+                    continue
+
+                # Check date range
+                if start_date <= neo_date <= end_date:
+                    try:
+                        velocity = float(neo.get("V relative(km/s)", 0))
+                        distance = float(neo.get("CA DistanceNominal (au)", 
+                                      neo.get("CA DistanceMinimum (au)", 0)))
+                        velocities.append(velocity)
+                        distances.append(distance)
+                        processed_count += 1
+                    except (ValueError, TypeError) as e:
+                        logging.warning(f"Skipping {key_str}: invalid data - {str(e)}")
+
+            except Exception as e:
+                logging.warning(f"Skipping key {key_str}: {str(e)}")
+                continue
+
+        logging.info(f"Processed {processed_count} NEOs for job {jobid}")
+
+      
+        if not velocities or not distances:
+            raise ValueError("No valid NEO data found in date range")
         # Generate scatter plot
         plt.figure(figsize=(10, 6))
         plt.scatter(distances, velocities, alpha=0.7, edgecolors='k')
