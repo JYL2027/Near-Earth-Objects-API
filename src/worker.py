@@ -49,8 +49,8 @@ def do_work(jobid):
                 raise ValueError("Job data not found in Redis")
             
             job_data = json.loads(job_raw)
-            start_date_str = job_data.get('start_date')
-            end_date_str = job_data.get('end_date')
+            start_date_str = job_data.get('start')
+            end_date_str = job_data.get('end')
 
             # Flexible date parsing
             def parse_date(date_str):
