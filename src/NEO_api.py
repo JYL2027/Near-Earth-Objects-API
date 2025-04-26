@@ -20,8 +20,8 @@ from flask import Flask, jsonify, request, Response, send_file
 from pre_work import create_min_diam_column, create_max_diam_column
 
 # set logging
-# format_str=f'[%(asctime)s {socket.gethostname()}] %(filename)s:%(funcName)s:%(lineno)s - %(levelname)s: %(message)s'
-logging.basicConfig(level='DEBUG')
+format_str=f'[%(asctime)s {socket.gethostname()}] %(filename)s:%(funcName)s:%(lineno)s - %(levelname)s: %(message)s'
+logging.basicConfig(level='ERROR')
 
 
 REDIS_IP = os.environ.get("REDIS_HOST", "redis-db")
@@ -66,7 +66,10 @@ def fetch_neo_data():
             key = f"{date_only}"
 
             rd.set(key, json.dumps(dict_data, sort_keys=True))
-        
+        if len(rd.keys('*')) == len(data):
+            return 'success loading data\n'
+        else:
+            return 'failed to load all data into redis'
     except Exception as e:
         logging.error(f"Error downloading NEO data: {e}")
         return f"Error fetching data: {e}\n"
