@@ -51,9 +51,6 @@ def do_work(jobid):
             job_data = json.loads(job_raw)
             start_date_str = job_data.get('start_date')
             end_date_str = job_data.get('end_date')
-            
-            if not all([start_date_str, end_date_str]):
-                raise ValueError("Missing start_date or end_date")
 
             # Flexible date parsing
             def parse_date(date_str):
