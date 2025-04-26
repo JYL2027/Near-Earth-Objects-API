@@ -62,8 +62,9 @@ def fetch_neo_data():
                 parsed_date = datetime.strptime(original_date.split('±')[0].strip(), "%Y-%b-%d %H:%M")
                 date_only = parsed_date.strftime("%Y-%b-%d") 
                 date_only = date_only[:11]
-            except:
-                date_only = original_date.split()[0]  
+            except Exception as e:
+                date_only = original_date.split()[0]
+                logging.debug(f"Could not add {e}")
             key = f"{date_only}"
 
             rd.set(key, json.dumps(dict_data, sort_keys=True))
