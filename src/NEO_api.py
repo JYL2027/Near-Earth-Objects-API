@@ -66,10 +66,7 @@ def fetch_neo_data():
             key = f"{date_only}"
 
             rd.set(key, json.dumps(dict_data, sort_keys=True))
-        if len(rd.keys('*')) == len(data):
-            return 'success loading data\n'
-        else:
-            return 'failed to load all data into redis'
+        
     except Exception as e:
         logging.error(f"Error downloading NEO data: {e}")
         return f"Error fetching data: {e}\n"
