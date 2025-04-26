@@ -43,8 +43,18 @@ def do_work(jobid):
         update_job_status(jobid, "in progress")
 
         job_data = json.loads(jdb.get(jobid))
-        start_date = datetime.strptime(job_data['start_date'], "%Y-%b-%d %H:%M")
-        end_date = datetime.strptime(job_data['end_date'], "%Y-%b-%d %H:%M")
+        start_date_str = job_data.get('start_date')
+        end_date_str = job_data.get('end_date')
+        
+        try:
+            start_date = datetime.strptime(start_date_str, "%Y-%b-%d %H:%M")
+        except ValueError:
+                start_date = datetime.strptime(start_date_str, "%Y-%b-%d")
+                
+        try:
+            end_date = datetime.strptime(end_date_str, "%Y-%b-%d %H:%M")
+        except ValueError:
+            end_date = datetime.strptime(end_date_str, "%Y-%b-%d")
 
         velocities = []
         distances = []
