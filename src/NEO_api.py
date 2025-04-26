@@ -56,7 +56,7 @@ def fetch_neo_data():
         for idx, row in data.iterrows():
             dict_data = {'Object' : row['Object'], 'Close-Approach (CA) Date' : row['Close-Approach (CA) Date'], 'CA DistanceNominal (au)' : row['CA DistanceNominal (au)'], 'CA DistanceMinimum (au)' : row['CA DistanceMinimum (au)'], 'V relative(km/s)' : row['V relative(km/s)'], 'V infinity(km/s)':  row['V infinity(km/s)'], 'H(mag)' : row['H(mag)'], 'Diameter' : row['Diameter'],'Rarity' : row['Rarity'], 'Minimum Diameter' : row['Minimum Diameter'], 'Maximum Diameter' : row['Maximum Diameter']}
             
-            rd.set(row['Close-Approach (CA) Date'], dict_data)
+            rd.set(row['Close-Approach (CA) Date'], json.dumps(dict_data))
 
         if len(rd.keys('*')) == len(data):
             return 'success loading data\n'
