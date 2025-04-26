@@ -26,6 +26,48 @@ format_str=f'[%(asctime)s {socket.gethostname()}] %(filename)s:%(funcName)s:%(li
 logging.basicConfig(level= 'DEBUG', format=format_str)
 
 
+def clean_to_date_only(time: str) -> str:
+    ''' 
+    Cleans a NEO time string and extracts only the date part (e.g., "2025-Apr-26").
+
+    Args:
+        time (str): The raw time string.
+
+    Returns:
+        str: The date only (YYYY-MMM-DD).
+    '''
+    if not time:
+        return ""
+
+    # First, remove anything after ± if it exists
+    if '±' in time:
+        time = time.split('±')[0].strip()
+
+    # Then, split off the time part (if it exists) and keep only the date
+    parts = time.split()
+    if parts:
+        return parts[0]  # Return only the date part
+    else:
+        return time.strip()  # Fallback: return what is left
+
+
+# Flexible date parsing
+def parse_date(date_str: str) -> datetime:
+    '''
+    This function parces the date given to be a datetime object
+
+    Args:
+        date_str: The date to be parsed as a string
+    
+    Returns:
+        Returns the date format as a datetime object
+    '''
+    try:
+        # Directly parse 
+        return datetime.strptime(date_str.strip(), "%Y-%b-%d")
+    except ValueError:
+        raise ValueError(f"Unrecognized date format: {date_str}")
+    
 @q.worker
 def do_work(jobid):
     """
@@ -41,7 +83,6 @@ def do_work(jobid):
     try:
         logging.info(f"Starting job {jobid}")
         update_job_status(jobid, "in progress")
-
     
         try:
             job_raw = jdb.get(jobid)
@@ -52,21 +93,11 @@ def do_work(jobid):
             start_date_str = job_data.get('start')
             end_date_str = job_data.get('end')
 
-            # Flexible date parsing
-            def parse_date(date_str):
-                for fmt in ["%Y-%b-%d %H:%M", "%Y-%b-%d"]:
-                    try:
-                        return datetime.strptime(date_str.split('±')[0].strip(), fmt)
-                    except ValueError:
-                        continue
-                raise ValueError(f"Unrecognized date format: {date_str}")
-
             start_date = parse_date(start_date_str)
             end_date = parse_date(end_date_str)
 
         except Exception as e:
             raise ValueError(f"Invalid job data: {str(e)}")
-
         
         velocities = []
         distances = []
@@ -87,7 +118,7 @@ def do_work(jobid):
 
                 # Parse NEO date
                 try:
-                    neo_date = parse_date(neo_date_str)
+                    neo_date = clean_to_date_only(neo_date_str)
                 except ValueError as e:
                     logging.warning(f"Skipping {key_str}: {str(e)}")
                     continue
