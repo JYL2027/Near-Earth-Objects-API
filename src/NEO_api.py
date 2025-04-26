@@ -60,7 +60,8 @@ def fetch_neo_data():
             try:
                 # Parse full string 
                 parsed_date = datetime.strptime(original_date.split('±')[0].strip(), "%Y-%b-%d %H:%M")
-                date_only = parsed_date.strftime("%Y-%b-%d")  
+                date_only = parsed_date.strftime("%Y-%b-%d") 
+                date_only = date_only[:11]
             except:
                 date_only = original_date.split()[0]  
             key = f"{date_only}"
