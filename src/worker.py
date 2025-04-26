@@ -28,13 +28,13 @@ logging.basicConfig(level= 'DEBUG', format=format_str)
 
 def clean_to_date_only(time: str) -> str:
     ''' 
-    Cleans a NEO time string and extracts only the date part (e.g., "2025-Apr-26").
+    Cleans a NEO time string and extracts only the date part.
 
     Args:
         time (str): The raw time string.
 
     Returns:
-        str: The date only (YYYY-MMM-DD).
+        str: The date (YYYY-MMM-DD).
     '''
     if not time:
         return ""
@@ -43,15 +43,14 @@ def clean_to_date_only(time: str) -> str:
     if '±' in time:
         time = time.split('±')[0].strip()
 
-    # Then, split off the time part (if it exists) and keep only the date
+    # Then, split off the time part and keep only the date
     parts = time.split()
     if parts:
         return parts[0]  # Return only the date part
     else:
-        return time.strip()  # Fallback: return what is left
+        return time.strip() 
 
 
-# Flexible date parsing
 def parse_date(date_str: str) -> datetime:
     '''
     This function parces the date given to be a datetime object
