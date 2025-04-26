@@ -12,6 +12,7 @@ import sys
 import io
 import time
 import pprint
+import re
 from datetime import datetime, timezone
 from hotqueue import HotQueue
 import pandas as pd
@@ -57,7 +58,7 @@ def fetch_neo_data():
             dict_data = {'Object' : row['Object'], 'Close-Approach (CA) Date' : row['Close-Approach (CA) Date'], 'CA DistanceNominal (au)' : row['CA DistanceNominal (au)'], 'CA DistanceMinimum (au)' : row['CA DistanceMinimum (au)'], 'V relative(km/s)' : row['V relative(km/s)'], 'V infinity(km/s)':  row['V infinity(km/s)'], 'H(mag)' : row['H(mag)'], 'Diameter' : row['Diameter'],'Rarity' : row['Rarity'], 'Minimum Diameter' : row['Minimum Diameter'], 'Maximum Diameter' : row['Maximum Diameter']}
             
             original_date = row['Close-Approach (CA) Date']
-            date_only = original_date.split()[0]
+            date_only = re.match(r"(\d{4}-[A-Za-z]{3}-\d{2})", original_date).group(1)
             key = f"{date_only}"
 
             rd.set(key, json.dumps(dict_data, sort_keys=True))
