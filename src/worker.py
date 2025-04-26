@@ -119,6 +119,7 @@ def do_work(jobid):
                 # Parse NEO date
                 try:
                     neo_date = clean_to_date_only(neo_date_str)
+                    neo_date = parse_date(neo_date)
                 except ValueError as e:
                     logging.warning(f"Skipping {key_str}: {str(e)}")
                     continue
