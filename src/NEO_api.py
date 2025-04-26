@@ -21,7 +21,7 @@ from pre_work import create_min_diam_column, create_max_diam_column
 
 # set logging
 format_str=f'[%(asctime)s {socket.gethostname()}] %(filename)s:%(funcName)s:%(lineno)s - %(levelname)s: %(message)s'
-logging.basicConfig(level='ERROR')
+logging.basicConfig(level='DEBUG')
 
 
 REDIS_IP = os.environ.get("REDIS_HOST", "redis-db")
