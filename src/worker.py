@@ -62,12 +62,6 @@ def do_work(jobid):
         for key in rd.keys('*'):
             key_str = key.decode('utf-8')
 
-            try:
-                clean_date = key_str.split("\\")[0].split('±')[0].strip()
-                date_obj = datetime.strptime(clean_date, "%Y-%b-%d %H:%M")
-            except Exception as e:
-                logging.error(f"Skipping key {key_str}: invalid datetime format")
-                continue
 
             if start_date <= date_obj <= end_date:
                 try:
