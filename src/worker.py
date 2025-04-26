@@ -114,13 +114,13 @@ def do_work(jobid):
         if not velocities or not distances:
             raise ValueError("No valid NEO data found in date range")
         # Generate scatter plot
-        plt.figure(figsize=(10, 6))
-        plt.scatter(distances, velocities, alpha=0.7, edgecolors='k')
-        plt.title('Relative Velocity vs. Close-Approach Distance')
-        plt.xlabel('Distance (AU)')
-        plt.ylabel('Relative Velocity (km/s)')
-        plt.grid(True)
-
+        plt.figure(figsize=(12, 7))
+        plt.hist2d(distances, velocities, 
+           bins=(30, 30), 
+           cmap='plasma',
+           cmin=1)
+        plt.colorbar(label='Count')
+        plt.title('NEO Velocity vs. Distance Frequency')
         # Save plot to image buffer and store in Redis
         plt.savefig(f'/app/{jobid}_plot.png')
         update_job_status(jobid, "complete")
