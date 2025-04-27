@@ -63,7 +63,7 @@ Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
   "start": "",
   "status": "complete"
    }
-- `curl localhost:5000/results/<jobid>`: This route will return the results of a certain job ID created by the user. This API will return a table regarding the count of each type of locus group present in the given range of HGNC IDs. To run this command, replace `<jobid>` with a valid job ID, which you can find using the `/jobs` route. An example output where the result was retrieved is shown below:
+- `curl localhost:5000/results/<jobid>`: This route will return the results of a certain job ID created by the user. This API will return a hexbin graph comparing relative velocities and nominal distances of NEOs. To run this command, replace `<jobid>` with a valid job ID, which you can find using the `/jobs` route. An example output where the result was retrieved is shown below:
 7. **Pytest**: If you want to run the pytests, first use the command `docker ps`. Identify the container ID of the flask app. Then run the command `docker exec -it <ID> bash` where `<ID>` is the ID of the container. From there, you can run `pytest test_NEO_api.py` or `pytest test_worker.py` or `pytest test_jobs.py`, depending on the test you want to run. 
 7. **Cleanup**: After you are done with the analysis, please run the command `docker compose down` to clear the containers.
    
