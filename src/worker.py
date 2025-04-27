@@ -75,7 +75,7 @@ def parse_date(date_str: str) -> datetime:
 @q.worker
 def do_work(jobid: str) -> None:
     """
-    This worker function to generate a relative velocity vs. distance, density plot and stores the image in Redis
+    This worker function to generate a relative velocity vs. distance, hexbin plot and stores the image in Redis
 
     Args:
         The jobid as a string
