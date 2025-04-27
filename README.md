@@ -1,7 +1,7 @@
 # Near Earth Objects: An Overview of Future Cosmic Encounters
 
 ## Objective:
-This Project was created to utilize a Flask web application to analyze a set of Near Earth Object data overseen by the Center for Near Earth Object Studies. The primary objective of the project is to create a structured database and Flask API that serves as a reliable tool for researchers to reference and utilize. The goal is to enhance the understanding of NEO data.
+This project was created to utilize a Flask web application to analyze a set of Near Earth Object data overseen by the Center for Near Earth Object Studies. The primary objective of the project is to create a structured database and Flask API that serves as a reliable tool for researchers to reference and utilize. The goal is to enhance the understanding of NEO data.
 
 ## Contents: 
 This project contains the following files:
