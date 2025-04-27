@@ -16,6 +16,7 @@ This project contains the following files:
    - test_NEO_api.py: This script tests all the routes inside gene_api.py to ensure no errors.
    - test_jobs.py: This script tests all the functions in jobs.py, ensuring no errors in the job methods.
    - test_worker.py: This script tests the functions that do the data analysis inside worker.py, ensuring accurate analysis.
+6. kubernetes:
     
 ## Scripts:
 This folder contains three scripts for the Flask web application:
