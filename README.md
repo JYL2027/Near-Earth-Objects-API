@@ -37,24 +37,24 @@ Please note that the current logging level is set to WARNING. If you wish to cha
 Please note that the current Redis host IP is set to redis-db. If you would like to change that open `docker-compose.yml` with a text editor. Then, under environment change, what `REDIS_HOST` is being set to.
 
 ## Data:
-To access the data used in this project, please use the following link: https://cneos.jpl.nasa.gov/ca/. The data is public on the CNEO website and is presented in both `CSV` and `EXCEL` formats. To view them, please download them onto your computer by accessing the data links at the bottom of the page. The dataset contains information about individual near earth objects 
- Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
+The dataset used in this project is sourced from the Center for Near-Earth Object Studies (CNEOS), which tracks the times and distances of Near-Earth Objects (NEOs) from 1900 A.D. to 2200 A.D. For this project, we are focusing specifically on future NEO events. To access the data used in this project, please use the following link: https://cneos.jpl.nasa.gov/ca/. The data is public on the CNEO website and is presented in both `CSV` and `EXCEL` formats. To view them, please download them onto your computer by accessing the data links at the bottom of the page. The dataset contains approximately 16,400 entries, each corresponding to a unique NEO. Each entry includes several key fields that provide important insights into the characteristics of these objects: Close-Approach Date, CA Distance Nominal (au), CA Distance Minimum (au), V relative (km/s), V infinity (km/s), H(mag), Diameter, and Rarity.
+Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
    
-## Building container and running code (Username is your Docker Hub Username):
-1. **Retrieve Data**: Since this project focuses on future NEOs please navigate to the CNEOS website listed above. Next in table settings select `Future only` and then `Update Data`. After updating the data set download the data as a `CSV`.
+## Launching Flask Application and running code (Username is your Docker Hub Username):
+1. **Retrieve Data**: Since this project focuses on future NEOs, please navigate to the above CNEOS website. Next, in table setting,s select `Future only` and then `Update Data`. After updating the data set, download the data as a `CSV`.
 2. **Using Data**: To use the data for analysis, please first rename the downloaded data to `neo.csv`. Now please move the `neo.csv` into the `src` directory.
 3. **Build Docker image**: First, make sure everything in this project repository is in the same directory. In the terminal, please run the command: `docker build -t username/neo_api:1.0 .`
 4. **Docker Compose**: Next, use a text editor to edit the `docker-compose.yml` file. Replace the username part of the file with your docker hub username.
 5. **Local Data Storage**: In the same project directory, create a folder called `data` so that the data written to flask can also be stored on the local machine. 
 6. **Run Docker**: To run the container, please run the command: `docker compose up -d`. The `-d` flags allow the containers to run in the background.
-7. **Final Steps**: Now that you have the container running, you must use curl commands to access routes to get the data you want. To run all the routes successfully please first run the command `curl localhost:5000/data -X POST` to store the data into redis.
+7. **Final Steps**: Now that you have the container running, you must use curl commands to access routes to get the data you want. To run all the routes successfully please first run the command `curl localhost:5000/data -X POST` to store the data into Redis.
 8. **Query and Expected Output**: Here, I will describe the curl commands and what output you should expect.
--`curl localhost:5000/data -X POST`: This route takes the csv formated data from the `neo.csv` and stores the data into redis. Upon running this command, you will either expect a message regarding success, failure, or that data is already stored in the database.  `success loading data` and `failed to load all data into redis`.
-- `curl localhost:5000/data`: This route retrieves all of the data stored inside the redis database. Upon running the command, you should expect to see all of the NEO objects and their data.
-- `curl localhost:5000/data -X DELETE`: This route deletes all of the data stored inside the redis database. Upon running this command, you will either expect a message regarding success or failure in deleting all the data: `Database flushed` or `Database failed to clear`
+-`curl localhost:5000/data -X POST`: This route takes the CSV-formatted data from the `neo.csv` and stores the data into Redis. Upon running this command, you will either expect a message regarding success, failure, or that data is already stored in the database.  `success loading data` and `failed to load all data into redis`.
+- `curl localhost:5000/data`: This route retrieves all of the data stored inside the Redis database. Upon running the command, you should expect to see all of the NEO objects and their data.
+- `curl localhost:5000/data -X DELETE`: This route deletes all of the data stored inside the Redis database. Upon running this command, you will either expect a message regarding success or failure in deleting all the data: `Database flushed` or `Database failed to clear`
 - `curl localhost:5000/jobs -X POST -d '{"start_date": "date", "end_date": "date"}' -H "Content-Type: application/json"`:
 - `curl localhost:5000/jobs`: This route will return all of the job IDs created by the user when posting a job. 
-- `curl localhost:5000/jobs/<jobid>`: This route returns data about a certain job. It will include information about the id, start, and end parameters. Most importantly, it will also include the status of the job ranging from `submitted`, `in progress`, and `complete`. To run this command, replace `<jobid>` with a valid job ID, which you can find using the `/jobs` route. An example output where the job was completed is shown below:
+- `curl localhost:5000/jobs/<jobid>`: This route returns data about a certain job. It will include information about the id, start, and end parameters. Most importantly, it will also include the status of the job, ranging from `submitted`, `in progress`, and `complete`. To run this command, replace `<jobid>` with a valid job ID, which you can find using the `/jobs` route. An example output where the job was completed is shown below:
   ```json
    {
   "end": "",
@@ -62,8 +62,8 @@ To access the data used in this project, please use the following link: https://
   "start": "",
   "status": "complete"
    }
-- `curl localhost:5000/results/<jobid>`: This route will return the results of a certain job ID created by the user. In this API, it will return a table regarding the count of each type of locus group present in the given range of HGNC IDs. To run this command, replace `<jobid>` with a valid job ID, which you can find using the `/jobs` route. An example output where the result was retrieved is shown below:
-7. **Pytest**: If you want to run the pytests, first use the command `docker ps`. Identify the container ID of the flask app. Then run the command `docker exec -it <ID> bash` where `<ID>` is the ID of the container. From there, you can run `pytest test_gene_api.py` or `pytest test_worker.py` or `pytest test_jobs.py` depending on the test you want to run. 
+- `curl localhost:5000/results/<jobid>`: This route will return the results of a certain job ID created by the user. This API will return a table regarding the count of each type of locus group present in the given range of HGNC IDs. To run this command, replace `<jobid>` with a valid job ID, which you can find using the `/jobs` route. An example output where the result was retrieved is shown below:
+7. **Pytest**: If you want to run the pytests, first use the command `docker ps`. Identify the container ID of the flask app. Then run the command `docker exec -it <ID> bash` where `<ID>` is the ID of the container. From there, you can run `pytest test_NEO_api.py` or `pytest test_worker.py` or `pytest test_jobs.py`, depending on the test you want to run. 
 7. **Cleanup**: After you are done with the analysis, please run the command `docker compose down` to clear the containers.
    
 ## AI Use (Chat GPT): 
