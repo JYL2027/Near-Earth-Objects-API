@@ -12,7 +12,7 @@ This project contains the following files:
    - NEO_api.py: The main Flask script that handles routes for managing and querying gene data.
    - jobs.py: Module that contains core functionality for working with jobs in Redis
    - worker.py: Module that contains the code to execute jobs.
-5.
+5. test:
    - test_NEO_api.py: This script tests all the routes inside gene_api.py to ensure no errors.
    - test_jobs.py: This script tests all the functions in jobs.py, ensuring no errors in the job methods.
    - test_worker.py: This script tests the functions that do the data analysis inside worker.py, ensuring accurate analysis.
