@@ -21,11 +21,11 @@ This project contains the following files:
 ## Scripts:
 This folder contains three scripts for the Flask web application:
 1. **NEO_api.py (main script)**
-This script contains routes that use the GET, DELETE, and POST methods to retrieve or delete data you want to analyze or interpret. Based on your route, the script will either retrieve the whole data set to store to redis or delete the data sets from redis. Beyond those functionalities, the script allows for analysis and exploration of the data set. The script can also allow you to create jobs to the API where the parameters area range of HGNC IDs, retrieve job IDs, and check on the info about a certain job. Lastly, the script enables you to retrieve the results of a certain job ,given the job ID. 
+This script contains routes that use the GET, DELETE, and POST methods to retrieve or delete data you want to analyze or interpret. Based on your route, the script will either retrieve the whole data set to store in Redis or delete the data sets from Redis. Beyond those functionalities, the script allows for analysis and exploration of the dataset. The script can also allow you to create jobs to the API where the parameters are a range of valid dates, retrieve job IDs, and check on the info about a certain job. Lastly, the script enables you to retrieve the results of a certain job, given the job ID. 
 2. **jobs.py**
 This script contains all the functions, both private and public, needed for the application to work with jobs and allows user interaction with the queue. 
 3. **worker.py**
-This script works to analyze the data and update jobs submitted by users and alters their status in the queue. Given a range of date's, this script will create a hexbin graph portraying the density of relative velocities and the near appraoch distance;s of NEO's in that range. 
+This script works to analyze the data and update jobs submitted by users and alters their status in the queue. Given a range of dates, this script will create a hexbin graph portraying the density of relative velocities and the near approach distances of NEOs in that range. 
 
 ## System Diagram:
 <img src="Gene_System_Diagram.png" alt="My Image" width="800">
