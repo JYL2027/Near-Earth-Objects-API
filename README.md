@@ -9,11 +9,11 @@ This project contains the following files:
 2. Dockerfile: The file used to build a Docker container for deploying the Flask app.
 3. docker-compose.yml: The file defines the services needed to run the application, such as setting up Redis and Flask.
 4. src:
-   - NEO_api.py: The main Flask script that handles routes for managing and querying gene data.
+   - NEO_api.py: The main Flask script that handles routes for managing and querying NEO data.
    - jobs.py: Module that contains core functionality for working with jobs in Redis
    - worker.py: Module that contains the code to execute jobs.
 5. test:
-   - test_NEO_api.py: This script tests all the routes inside gene_api.py to ensure no errors.
+   - test_NEO_api.py: This script tests all the routes inside NEO_api.py to ensure no errors.
    - test_jobs.py: This script tests all the functions in jobs.py, ensuring no errors in the job methods.
    - test_worker.py: This script tests the functions that do the data analysis inside worker.py, ensuring accurate analysis.
 6. kubernetes:
