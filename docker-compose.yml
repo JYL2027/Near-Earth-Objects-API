@@ -19,6 +19,7 @@ services:
             - redis-db
         environment:
             - REDIS_HOST=redis-db
+            - LOG_LEVEL=WARNING
         image: mjt2005/neo_api:1.0
         ports:
             - 5000:5000
@@ -32,5 +33,6 @@ services:
             - redis-db
         environment:
             - REDIS_HOST=redis-db
+            - LOG_LEVEL=WARNING
         command: ["python", "worker.py"]
 

@@ -19,9 +19,12 @@ from jobs import add_job, get_job_by_id, get_job_result
 from flask import Flask, jsonify, request, Response, send_file
 from pre_work import create_min_diam_column, create_max_diam_column
 
-# set logging
+# Set logging
+log_level_str = os.environ.get("LOG_LEVEL", "ERROR").upper()
+log_level = getattr(logging, log_level_str, logging.ERROR)
+
 format_str=f'[%(asctime)s {socket.gethostname()}] %(filename)s:%(funcName)s:%(lineno)s - %(levelname)s: %(message)s'
-logging.basicConfig(level='DEBUG')
+logging.basicConfig(level=log_level, format=format_str)
 
 
 REDIS_IP = os.environ.get("REDIS_HOST", "redis-db")
@@ -44,6 +47,8 @@ def fetch_neo_data():
         Returns:
             message (str): message indicating whether data push was successful
     """
+
+    logging.debug("Retrieving and parsing data...")
     try:
         data = pd.read_csv('/app/neo.csv')
     except FileNotFoundError:
@@ -53,21 +58,34 @@ def fetch_neo_data():
         data['Minimum Diameter'] = data['Diameter'].apply(create_min_diam_column)
         data['Maximum Diameter'] = data['Diameter'].apply(create_max_diam_column)
         
+
         for idx, row in data.iterrows():
             dict_data = {'Object' : row['Object'], 'Close-Approach (CA) Date' : row['Close-Approach (CA) Date'], 'CA DistanceNominal (au)' : row['CA DistanceNominal (au)'], 'CA DistanceMinimum (au)' : row['CA DistanceMinimum (au)'], 'V relative(km/s)' : row['V relative(km/s)'], 'V infinity(km/s)':  row['V infinity(km/s)'], 'H(mag)' : row['H(mag)'], 'Diameter' : row['Diameter'],'Rarity' : row['Rarity'], 'Minimum Diameter' : row['Minimum Diameter'], 'Maximum Diameter' : row['Maximum Diameter']}
             
             rd.set(row['Close-Approach (CA) Date'], json.dumps(dict_data))
 
         if len(rd.keys('*')) == len(data):
+            logging.debug("Successful loading of data")
             return 'success loading data\n'
         else:
+            logging.debug("Unsuccessful loading of data")
             return 'failed to load all data into redis'
     except Exception as e:
         logging.error(f"Error downloading NEO data: {e}")
         return f"Error fetching data: {e}\n"
 
 @app.route('/data', methods = ['GET'])
-def return_neo_data():
+def return_neo_data() -> str:
+    """
+    This function returns all of the data stored in Redis as a JSON object
+
+    Args:
+        None
+    
+    Returns:
+        A JSON string that returns all the data stored in redis
+    """
+    logging.debug("Getting all data...")
     dat = {}
     for key in rd.keys('*'):
         key = key.decode('utf-8')
@@ -76,33 +94,50 @@ def return_neo_data():
             dat[key] = val
         except:
             logging.error(f'Error retrieving data at {key}')
-        
+    logging.debug("All data parsed")
     return json.dumps(dat, ensure_ascii=False, sort_keys=True)
 
 @app.route('/data', methods = ["DELETE"])
-def delete_neo_data():
+def delete_neo_data() -> str:
+    '''
+    This function deletes all of the data stored in redis
+
+    Args:
+        none
+    
+    Returns:
+        Returns a string response indicating failure to clear data base or success
+    '''
+    logging.debug("Flushing the database...")
     rd.flushdb()
     if not rd.keys():
+        logging.debug("Success in flushing all data")
         return 'Database flushed\n'
     else:
+        logging.error("Failure in flushing all data")
         return "Database failed to clear\n"
     
 @app.route('/data/date', methods = ['GET'])
-def get_year() -> list:
+def get_date() -> list:
     '''
-    This function returns all of the years and time values.
+    This function returns all of the dates and time values which are the keys in Redis.
     Args:
         None
     Returns: A flask response containing the years/time as a list
     '''
-    years = []
+    logging.debug("Beginning to return dates")
+    date = []
     for key in rd.keys('*'):
-        key = key.decode('utf-8')
-        years.append(key)
-    return years
+        try:
+            key = key.decode('utf-8')
+            date.append(key)
+        except Exception as e:
+            logging.warning(f"Could not decode key: {e}")
+    logging.debug("Completed Date parsing")
+    return date
 
 @app.route('/data/<year>', methods = ['GET'])
-def get_data_by_year(year):
+def get_data_by_year(year: str) -> dict:
     '''
     This function returns the data for NEO's that will approach Earth in a given year.
         Args:
@@ -110,6 +145,8 @@ def get_data_by_year(year):
         Returns:
             dat (dict) - subset of the data
     '''
+
+    logging.debug(f"Retrieving data for year: {year}")
     if not year.isnumeric():
         return 'invalid year entered'
     
@@ -118,6 +155,7 @@ def get_data_by_year(year):
         key = key.decode('utf-8')
         if key.split('-')[0] == year:
             dat[key] = json.loads(rd.get(key).decode('utf-8'))
+            logging.debug(f"Loading data associated with key: {key}")
     return dat
 
 @app.route('/data/distance', methods=['GET'])
@@ -128,12 +166,17 @@ def get_distances() -> Response:
     Query Parameters:
         min (float): Minimum distance in AU
         max (float): Maximum distance in AU
-        
+    
+    Args: 
+        none
+
     Returns:
         JSON response with number of results and list of NEOs with their approach dates and distances
     """
+
+    logging.debug("Retrieving close-approach distance data...")
     try:
-        # Parse optional query parameters
+        # Parse query parameters
         min_dist = request.args.get('min', type=float)
         max_dist = request.args.get('max', type=float)
         
@@ -160,7 +203,9 @@ def get_distances() -> Response:
                 'object': neo.get('Object', 'Unknown'),
                 'distance_au': distance,
             })
-        
+            logging.debug(f"Adding distance data associated with {key}")
+
+        logging.debug("Completed close-approach distance analysis")
         return jsonify({
             'count': len(results),
             'results': results
@@ -171,28 +216,46 @@ def get_distances() -> Response:
         return jsonify("Error in getting distance")
     
 @app.route('/data/velocity_query', methods= ['GET'])
-def query_velocity():
-    
+def query_velocity() -> dict:
+    """
+    Query NEO (Near-Earth Object) data stored in Redis based on a velocity range.
+
+    The user must supply 'min' and 'max' velocity values as query parameters.
+    The function will return all NEO entries whose relative velocity falls within the given range.
+
+    Query Parameters:
+        min (float): Minimum relative velocity (km/s).
+        max (float): Maximum relative velocity (km/s).
+
+    Returns:
+        dat: A dictionary of NEO data entries within the specified velocity range.
+              If an error occurs, returns an error message string instead.
+    """
+
     if not (request.args.get('min').isnumeric() and request.args.get('max').isnumeric()):
+        logging.warning('Invalid input: non-numeric min or max velocity.')
         return 'invalid date range entered'
     
     min_velocity = float(request.args.get('min'))
     max_velocity = float(request.args.get('max'))
 
     if min_velocity > max_velocity:
+        logging.warning('Invalid input: min velocity greater than max velocity.')
         return 'min velocity must be less than max velocity'
 
     dat = {}
     
     for key in rd.keys('*'):
         key = key.decode('utf-8')
-        neo = json.loads(rd.get(key).decode('utf-8'))
+        try:
+            neo = json.loads(rd.get(key).decode('utf-8'))
 
-        if min_velocity <= float(neo.get('V relative(km/s)')) <= max_velocity:
-            dat[key] = json.loads(rd.get(key).decode('utf-8'))
+            if min_velocity <= float(neo.get('V relative(km/s)')) <= max_velocity:
+                dat[key] = json.loads(rd.get(key).decode('utf-8'))
+        except Exception as e:
+            logging.error(f'Error processing key {key}: {e}')
 
-    return dat
-
+    return dat 
 
 @app.route('/jobs', methods=['POST'])
 def create_job() -> Response:
@@ -283,7 +346,7 @@ def get_job(jobid: str) -> Response:
     return jsonify(job)
 
 @app.route('/data/max_diam/<max_diameter>', methods=['GET'])
-def query_diameter(max_diameter):
+def query_diameter(max_diameter: float) -> Response:
     """
         This function is for an API endpoint. Given a max diameter, this route will find all
         the NEOs that are less than the input.
@@ -295,6 +358,8 @@ def query_diameter(max_diameter):
             All the NEOs less than the max_diameter. Compares the input
             to the max diameter of each NEO since it is a range.
     """
+
+    logging.debug(f"Finding NEOs with a diameter less than {max_diameter}")
     max_diameter = float(max_diameter)
     results = {}
 
@@ -308,13 +373,14 @@ def query_diameter(max_diameter):
                 diam = float(diam_str)
                 if diam <= max_diameter:
                     results[key_str] = neo
+                    logging.debug(f"Added NEO with a diamater of {diam}")
             except (ValueError, TypeError):
                 continue  # skip if diameter isn't parseable
-
+    logging.debug("Completed diamater analysis")
     return jsonify(results)
 
 @app.route('/data/biggest_neos/<count>', methods=['GET'])
-def find_biggest_neo(count):
+def find_biggest_neo(count: int) -> Response:
     """
         This function is for an API endpoint. Given input, it will 
         find the x biggest NEOs based on the H scale.
@@ -323,25 +389,37 @@ def find_biggest_neo(count):
             count: type - int. How many NEOs you want returned
 
         Returns:
-            List of dictionaries of count number of NEOs 
+            List of dictionaries of count number of NEOs as a JSON Reponse
     """
-    num_neo = int(count)
+    logging.debug("Finding the largest NEOs")
+    try:
+        num_neo = int(count)
+    except ValueError:
+        logging.error("Invalid count provided, could not convert to integer.")
+        return jsonify('error: Invalid count value. Must be an integer.')
+
     dat = []
+    logging.debug("Retrieving NEO data from Redis...")
     for key in rd.keys('*'):
         key_str = key.decode('utf-8')
-        value = json.loads(rd.get(key).decode('utf-8'))
-        dat.append({key_str: value})
-    
+        try:
+            value = json.loads(rd.get(key).decode('utf-8'))
+            dat.append({key_str: value})
+        except Exception as e:
+            logging.error(f"Error decoding Redis data for key {key_str}: {e}")
+
     def get_score(d):
         time_key = next(iter(d))
         return d[time_key].get("H(mag)", float('inf'))  # default if score missing
     
     sorted_data = sorted(dat, key=get_score)
     limit_data = sorted_data[:num_neo]
+    logging.info(f"Returning top {num_neo} NEOs based on H scale.")
+
     return jsonify(limit_data)
 
 @app.route('/now/<count>', methods = ['GET'])
-def get_timeliest_neos(count):
+def get_timeliest_neos(count: int) -> dict:
     ''' 
     This function returns the n closest NEO's in time to right now.
         Args:
@@ -349,23 +427,28 @@ def get_timeliest_neos(count):
         Returns:
             results (JSON) - a JSON dictionary contanining the n closest NEO's in time
     '''
+    logging.debug(f"Requested {count} closest NEOs in time to now.")
+
     # convert count to int
     num_neo = int(count)
     # get current time
     current_time = datetime.now(timezone.utc).replace(microsecond=0, tzinfo=None)
-    logging.info(current_time)
+    logging.info(f"Current UTC time: {current_time}")
     # intialize empty dict to hold full data
     dat = {}
     # retrive all data from redis
     for key in rd.keys('*'):
         key = key.decode('utf-8')
-        dat[key] = json.loads(rd.get(key).decode('utf-8'))
-    
+        try:
+            dat[key] = json.loads(rd.get(key).decode('utf-8'))
+        except Exception as e:
+            logging.error(f"Error decoding Redis data for key {key}: {e}")
 
     #logging.info(ordered_dict_dat)
 
     # initialize dict to hold cleaned keys (without the uncertainty part)
     cleaned_dict = {}
+    logging.debug("Cleaning and parsing timestamps...")
 
     # loop thru keys and clean them, saving them to new dict where values are its original values
     for i in dat.keys():
@@ -390,6 +473,8 @@ def get_timeliest_neos(count):
     for j in sorted_keys[:num_neo]:
         results[j] = cleaned_dict.get(j)
     
+    logging.info(f"Retrieved {len(results)} closest NEOs.")
+
     return results
 
 @app.route('/results/<job_id>', methods = ['GET'])
@@ -402,6 +487,8 @@ def get_results(job_id : str) -> Response:
             output.png (image) - the plot that the job generates, saved to the working directory 
     '''
     
+    logging.debug("Retrieving job results...")
+
     if not rdb.get(f"{job_id}_output_plot"):
         return 'Job ID not found\n'
     

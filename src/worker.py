@@ -22,8 +22,11 @@ jdb = redis.Redis(host=REDIS_IP, port=6379, db=2)
 rdb = redis.Redis(host=REDIS_IP, port=6379, db=3)
 
 # Set logging
+log_level_str = os.environ.get("LOG_LEVEL", "ERROR").upper()
+log_level = getattr(logging, log_level_str, logging.ERROR)
+
 format_str=f'[%(asctime)s {socket.gethostname()}] %(filename)s:%(funcName)s:%(lineno)s - %(levelname)s: %(message)s'
-logging.basicConfig(level= 'DEBUG', format=format_str)
+logging.basicConfig(level=log_level, format=format_str)
 
 
 def clean_to_date_only(time: str) -> str:
@@ -36,17 +39,19 @@ def clean_to_date_only(time: str) -> str:
     Returns:
         str: The date (YYYY-MMM-DD).
     '''
+    logging.debug("Begin cleaning date")
     if not time:
-        return ""
+        return " "
 
-    # First, remove anything after ± if it exists
+    # Remove anything after ± if it exists
     if '±' in time:
         time = time.split('±')[0].strip()
 
-    # Then, split off the time part and keep only the date
+    # Split off the time part and keep only the date
     parts = time.split()
+    logging.debug("Completed cleaning date")
     if parts:
-        return parts[0]  # Return only the date part
+        return parts[0]  
     else:
         return time.strip() 
 
@@ -62,15 +67,15 @@ def parse_date(date_str: str) -> datetime:
         Returns the date format as a datetime object
     '''
     try:
-        # Directly parse 
+        logging.debug("Parsing date and converting to datetime...") 
         return datetime.strptime(date_str.strip(), "%Y-%b-%d")
     except ValueError:
         raise ValueError(f"Unrecognized date format: {date_str}")
     
 @q.worker
-def do_work(jobid):
+def do_work(jobid: str) -> None:
     """
-    This worker function to generate a relative velocity vs. distance scatter plot and stores the image in Redis
+    This worker function to generate a relative velocity vs. distance, density plot and stores the image in Redis
 
     Args:
         The jobid as a string
@@ -84,6 +89,7 @@ def do_work(jobid):
         update_job_status(jobid, "in progress")
     
         try:
+            logging.debug("Retrieving start and end dates")
             job_raw = jdb.get(jobid)
             if not job_raw:
                 raise ValueError("Job data not found in Redis")
@@ -102,13 +108,15 @@ def do_work(jobid):
         distances = []
         processed_count = 0
 
+
         for key in rd.keys('*'):
             try:
+                logging.debug("Going through Redis and retrieving data...")
                 key_str = key.decode('utf-8')
                 neo_raw = rd.get(key)
                 if not neo_raw:
                     continue
-
+                
                 neo = json.loads(neo_raw.decode('utf-8'))
                 neo_date_str = neo.get('Close-Approach (CA) Date', '')
                 
@@ -124,6 +132,7 @@ def do_work(jobid):
                     continue
 
                 # Check date range
+                logging.debug(f"Checking date range of {neo_date}")
                 if start_date <= neo_date <= end_date:
                     try:
                         velocity = float(neo.get("V relative(km/s)", 0))
@@ -133,7 +142,7 @@ def do_work(jobid):
                         distances.append(distance)
                         processed_count += 1
                     except (ValueError, TypeError) as e:
-                        logging.warning(f"Skipping {key_str}: invalid data - {str(e)}")
+                        logging.warning(f"Skipping {key_str}: invalid data {str(e)}")
 
             except Exception as e:
                 logging.warning(f"Skipping key {key_str}: {str(e)}")
@@ -141,10 +150,10 @@ def do_work(jobid):
 
         logging.info(f"Processed {processed_count} NEOs for job {jobid}")
 
-      
         if not velocities or not distances:
             raise ValueError("No valid NEO data found in date range")
-        # Generate scatter plot
+        
+        # Generate plot
         plt.figure(figsize=(12, 7))
         hb = plt.hexbin(distances, velocities, 
                gridsize=30,
@@ -152,13 +161,14 @@ def do_work(jobid):
                mincnt=1,
                edgecolors='none')
         plt.colorbar(hb, label='NEO Count')
-        plt.title(f'NEO Density: {start_date_str} to {end_date_str}')
+        plt.title(f'NEO Close Approach Distance vs Relative Velocity: {start_date_str} to {end_date_str}')
         plt.xlabel('Close Approach Distance (AU)')
         plt.ylabel('Relative Velocity (km/s)')
-
         
-        # Save plot to image buffer and store in Redis
+        # Save plot to image and store in Redis
+        logging.debug("Saving plot to Redis")
         plt.savefig(f'/app/{jobid}_plot.png')
+
         update_job_status(jobid, "complete")
         logging.info(f"Job {jobid} complete.")
         try:
