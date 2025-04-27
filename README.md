@@ -58,9 +58,9 @@ Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
 - `curl localhost:5000/jobs/<jobid>`: This route returns data about a certain job. It will include information about the id, start, and end parameters. Most importantly, it will also include the status of the job, ranging from `submitted`, `in progress`, and `complete`. To run this command, replace `<jobid>` with a valid job ID, which you can find using the `/jobs` route. An example output where the job was completed is shown below:
   ```json
    {
-  "end": "",
+  "end": "2095-Oct-27",
   "id": "35dde259-788e-4181-926c-a0ab9ca03cb6",
-  "start": "",
+  "start": "2025-Apr-16",
   "status": "complete"
    }
 - `curl localhost:5000/results/<jobid>`: This route will return the results of a certain job ID created by the user. This API will return a hexbin graph comparing relative velocities and nominal distances of NEOs. To run this command, replace `<jobid>` with a valid job ID, which you can find using the `/jobs` route. An example output where the result was retrieved is shown below:
