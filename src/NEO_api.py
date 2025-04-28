@@ -504,11 +504,70 @@ def get_results(job_id : str) -> Response:
         return "Job still in progress"
 
 
-# @app.route('/help', methods = ["GET"])
-# def get_help():
+@app.route('/help', methods=['GET'])
+def print_routes():
+    """
+    This function provides a general understanding
+    of how to call each endpoint and if parameters are required.
+    """
 
-#     help = "cURL routes:" \
-#     " To view data: "
+    all_routes = {}
+
+    all_routes["/data"] = [
+        "GET request: returns data in the Redis database.",
+        "POST request: fills data into Redis database.",
+        "To curl GET: /data",
+        "To curl POST: -X POST /data"
+    ]
+
+    all_routes["/data/<year>"] = [
+        "Query route: input a year to get all NEOs spotted during that year.",
+        "To curl: /data/<input_year>"
+    ]
+
+    all_routes["/data/date"] = [
+        "Returns all years and times for all NEOs."
+    ]
+
+    all_routes["/data/distance"] = [
+        "Query route: returns NEOs based on min and max distance (AU).",
+        "Parameters needed: min and max.",
+        "To curl: /data/distance?min=<value>&max=<value>"
+    ]
+
+    all_routes["/data/velocity_query"] = [
+        "Query route: returns NEOs based on min and max velocity (km/s).",
+        "Parameters needed: min and max.",
+        "To curl: /data/velocity_query?min=<value>&max=<value>"
+    ]
+
+    all_routes["/jobs"] = [
+        "GET request: returns all jobs on the queue with their status.",
+        "POST request: creates a new job to add to the queue.",
+        "To curl GET: /jobs",
+        "To curl POST: -X POST /jobs"
+    ]
+
+    all_routes["/jobs/<jobid>"] = [
+        "GET request: returns status of a specific job based on job ID.",
+        "To curl: /jobs/<jobid>"
+    ]
+
+    all_routes["/data/<max_diameter>"] = [
+        "GET request: returns all NEOs with max diameter less than the input.",
+        "Parameter needed: float/int.",
+        "Return type: list of dictionaries.",
+        "To curl: /data/<max_diameter>"
+    ]
+
+    all_routes["/data/<count>"] = [
+        "GET request: returns the x biggest NEOs where x is given input.",
+        "Parameter: integer.",
+        "Return type: list of dictionaries.",
+        "To curl: /data/<count>"
+    ]
+
+    return jsonify(all_routes)
         
 
     
