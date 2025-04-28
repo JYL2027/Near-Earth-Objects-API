@@ -49,7 +49,34 @@ def plot_neos(jid):
                 dat[key] = val
             except:
                 logging.error(f'Error retrieving data at {key}')
-    pass
+    days = []   
+    mags = []
+    vels = []
+    rarity = []
     
+    for i in dat:
+        days.append(i.split('-')[2])
+        mags.append(dat[i]["H(mag)"])
+        vels.append(dat[i]['V relative(km/s)'])
+        rarity.append(int(dat[i]['Rarity']))
+    
+    min_mag = min(mags)
+    max_mag = max(mags)
+    
+    norm_mags = []
+    for mag in norm_mags:
+        norm_mag = (mag - min_mag) / (max_mag - min_mag)
+        norm_mags.append(norm_mag)
 
-    
+
+    scatter = plt.scatter(days, vels, s= norm_mags, c = rarity)
+    plt.legend(*scatter.legend_elements('sizes'), title = "Rarity")
+    plt.legend(*scatter.legend_elements(), title = "Rarity")
+    plt.ylim(0,25)
+    plt.xlim(0,31)
+    plt.xlabel('Day of Month')
+    plt.ylabel('V relative(km/s)')
+    plt.title(f"NEO's Approaching {df['Month'][0] + ' ' + df['Year'][0]}")
+    plt.show()
+
+        
