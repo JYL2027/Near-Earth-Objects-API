@@ -32,3 +32,24 @@ def create_max_diam_column(row):
             return max_diam
     else:
         return np.nan
+
+def plot_neos(jid):
+    dat = {}
+
+    job_info = json.loads(jdb.get(jid).decode('utf-8'))
+    # extract start and end parameters
+    month = job_info['month']
+    year = job_info['year']
+
+    for key in rd.keys('*'):
+        key = key.decode('utf-8')
+        if (key.split('-')[0] == year) and (key.split('-')[1] == month):
+            try:
+                val = json.loads(rd.get(key).decode('utf-8'))
+                dat[key] = val
+            except:
+                logging.error(f'Error retrieving data at {key}')
+    pass
+    
+
+    
