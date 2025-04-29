@@ -19,4 +19,8 @@ spec:
         - name: neo-worker-container
           image: jyl2027/neo_api:1.0
           imagePullPolicy: Always
-          command: ["python", "worker.py"]
+          env:
+            - name: REDIS_HOST
+              value: "redis-db"
+            - name: REDIS_PORT
+              value: "6379"

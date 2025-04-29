@@ -17,14 +17,13 @@ spec:
       containers:
         - name: neo-redis-container
           image: redis:6.2
-          volumeMounts:
-            - name: neo-jackyyl-data
-              mountPath: "/data"
           ports:
-            - name: redis-port
-              containerPort: 6379
+            - containerPort: 6379
+          volumeMounts:
+            - name: redis-storage
+              mountPath: /data
       volumes:
-      - name: neo-jackyyl-data
-      persistentVolumeClaim:
-      claimName: neo-jackyyl-data
+      - name: redis-storage
+        persistentVolumeClaim:
+          claimName: neo-jackyyl-data
           
