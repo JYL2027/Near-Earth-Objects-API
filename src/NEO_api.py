@@ -10,7 +10,7 @@ from hotqueue import HotQueue
 import pandas as pd
 from jobs import add_job, get_job_by_id, get_job_result
 from flask import Flask, jsonify, request, Response, send_file
-from pre_work import create_min_diam_column, create_max_diam_column
+from utils import create_min_diam_column, create_max_diam_column
 
 # Set logging
 log_level_str = os.environ.get("LOG_LEVEL", "ERROR").upper()
