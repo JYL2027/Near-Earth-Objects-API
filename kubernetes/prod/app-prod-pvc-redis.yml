@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: neo-redis-pvc
+  name: neo-jackyyl-data
 spec:
   accessModes:
     - ReadWriteOnce
