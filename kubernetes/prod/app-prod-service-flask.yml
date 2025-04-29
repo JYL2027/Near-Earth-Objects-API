@@ -3,10 +3,11 @@ kind: Service
 metadata:
   name: neo-flask-service
 spec:
-  type: ClusterIP
+  type: NodePort
   selector:
     app: neo-flask-app
   ports:
   - name: neo-flask
     port: 5000
     targetPort: 5000
+    nodePort: 30000  
