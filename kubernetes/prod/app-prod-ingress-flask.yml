@@ -10,11 +10,11 @@ spec:
   rules:
   - host: "ubuntu-flask.coe332.tacc.cloud"
     http:
-        paths:
-        - pathType: Prefix
-          path: "/"
-          backend:
-            service:
-              name: neo-flask-nodeport-service
-              port:
-                  number: 5000
+      paths:  
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: neo-flask-nodeport-service
+            port:
+              number: 5000
