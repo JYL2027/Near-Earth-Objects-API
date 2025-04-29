@@ -1,21 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: neo-flask-app
+  name: neo-deployment
+  labels:
+    app: neo-app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: neo-flask-app
+      app: neo-app
   template:
     metadata:
       labels:
-        app: neo-flask-app
+        app: neo-app
     spec:
       containers:
-        - name: neo-flask-container
+        - name: neo-container
           image: jyl2027/neo_api:1.0
           imagePullPolicy: Always
           command: ["flask", "run", "--host=0.0.0.0", "--port=5000"]
           ports:
-            - containerPort: 5000
+          - name: http
+            containerPort: 5000

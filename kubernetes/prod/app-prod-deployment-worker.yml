@@ -1,7 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: worker
+  name: neo-worker-deployment
+  labels:
+    app: worker
 spec:
   replicas: 1
   selector:
@@ -13,7 +15,7 @@ spec:
         app: worker
     spec:
       containers:
-        - name: worker
+        - name: neo-worker-container
           image: jyl2027/neo_api:1.0
           imagePullPolicy: Always
           command: ["python", "worker.py"]

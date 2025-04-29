@@ -2,7 +2,7 @@
 kind: Ingress
 apiVersion: networking.k8s.io/v1
 metadata:
-  name: neo-flask-ingress
+  name: hello-flask-ingress
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
@@ -10,11 +10,11 @@ spec:
   rules:
   - host: "jackyyl-flask.coe332.tacc.cloud"
     http:
-      paths:  
-      - pathType: Prefix
-        path: "/"
-        backend:
-          service:
-            name: neo-flask-service
-            port:
-              number: 5000
+        paths:
+        - pathType: Prefix
+          path: "/"
+          backend:
+            service:
+              name: neo-flask-nodeport-service
+              port:
+                  number: 5000

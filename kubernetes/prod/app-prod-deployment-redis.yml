@@ -1,7 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: redis
+  name: neo-redis-deployment
+  labels:
+    app: redis
 spec:
   replicas: 1
   selector:
@@ -13,14 +15,16 @@ spec:
         app: redis
     spec:
       containers:
-        - name: redis
+        - name: neo-redis-container
           image: redis:6.2
-          ports:
-            - containerPort: 6379
           volumeMounts:
-            - mountPath: /data
-              name: redis-storage
+            - name: neo-jackyyl-data
+              mountPath: "/data"
+              ports:
+            - name: http
+              containerPort: 6379  
       volumes:
-        - name: redis-storage
+        - name: neo-jackyyl-data
           persistentVolumeClaim:
-            claimName: neo-redis-pvc
+            claimName: neo-jackyyl-data
+          
