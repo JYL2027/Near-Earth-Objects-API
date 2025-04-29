@@ -25,7 +25,9 @@ This script contains routes that use the GET, DELETE, and POST methods to retrie
 2. **jobs.py**
 This script contains all the functions, both private and public, needed for the application to work with jobs and allows user interaction with the queue. 
 3. **worker.py**
-This script works to analyze the data and update jobs submitted by users and alters their status in the queue. Given a range of dates, this script will create a hexbin graph portraying the density of relative velocities and the near approach distances of NEOs in that range. 
+This script works to analyze the data and update jobs submitted by users and alters their status in the queue. Given a range of dates, this script will create a hexbin graph portraying the density of relative velocities and the near approach distances of NEOs in that range. Given a range of dates within a single month, it will create a scatter plot showcasing each NEO that will approach in that month, with the size of the dot corresponding to the magnitude and the color of the dot corresponding to its rarity.
+4. **utils.py**
+This script contains function definitions that are used in the api and worker modules.
 
 ## System Diagram:
 <img src="Gene_System_Diagram.png" alt="My Image" width="800">
@@ -48,11 +50,11 @@ Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
 4. **Docker Compose**: Next, use a text editor to edit the `docker-compose.yml` file. Replace the username part of the file with your docker hub username.
 5. **Local Data Storage**: In the same project directory, create a folder called `data` so that the data written to flask can also be stored on the local machine. 
 6. **Run Docker**: To run the container, please run the command: `docker compose up -d`. The `-d` flags allow the containers to run in the background.
-7. **Final Steps**: Now that you have the container running, you must use curl commands to access routes to get the data you want. To run all the routes successfully please first run the command `curl localhost:5000/data -X POST` to store the data into Redis.
+7. **Final Steps**: Now that you have the container running, you must use curl commands to access routes to get the data you want. To run all the routes successfully please first run the command `curl -X POST localhost:5000/data` to store the data into Redis.
 8. **Query and Expected Output**: Here, I will describe the curl commands and what output you should expect.
--`curl localhost:5000/data -X POST`: This route takes the CSV-formatted data from the `neo.csv` and stores the data into Redis. Upon running this command, you will either expect a message regarding success, failure, or that data is already stored in the database.  `success loading data` and `failed to load all data into redis`.
+-`curl -X POST localhost:5000/data`: This route takes the CSV-formatted data from the `neo.csv` and stores the data into Redis. Upon running this command, you will either expect a message regarding success, failure, or that data is already stored in the database.  `success loading data` and `failed to load all data into redis`.
 - `curl localhost:5000/data`: This route retrieves all of the data stored inside the Redis database. Upon running the command, you should expect to see all of the NEO objects and their data.
-- `curl localhost:5000/data -X DELETE`: This route deletes all of the data stored inside the Redis database. Upon running this command, you will either expect a message regarding success or failure in deleting all the data: `Database flushed` or `Database failed to clear`
+- `curl -X DELETE localhost:5000/data`: This route deletes all of the data stored inside the Redis database. Upon running this command, you will either expect a message regarding success or failure in deleting all the data: `Database flushed` or `Database failed to clear`
 - `curl localhost:5000/jobs -X POST -d '{"start_date": "date", "end_date": "date"}' -H "Content-Type: application/json"`:
 - `curl localhost:5000/jobs`: This route will return all of the job IDs created by the user when posting a job. 
 - `curl localhost:5000/jobs/<jobid>`: This route returns data about a certain job. It will include information about the id, start, and end parameters. Most importantly, it will also include the status of the job, ranging from `submitted`, `in progress`, and `complete`. To run this command, replace `<jobid>` with a valid job ID, which you can find using the `/jobs` route. An example output where the job was completed is shown below:
