@@ -16,3 +16,4 @@ spec:
         - name: worker
           image: jyl2027/neo_api:1.0
           imagePullPolicy: Always
+          command: ["python", "worker.py"]
