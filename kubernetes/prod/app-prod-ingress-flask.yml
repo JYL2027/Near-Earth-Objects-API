@@ -8,13 +8,13 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: "ubuntu-flask.coe332.tacc.cloud"
+  - host: "jackyyl-flask.coe332.tacc.cloud"
     http:
       paths:  
       - pathType: Prefix
         path: "/"
         backend:
           service:
-            name: neo-flask-nodeport-service
+            name: neo-flask-service
             port:
               number: 5000
