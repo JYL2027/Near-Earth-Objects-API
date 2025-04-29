@@ -15,5 +15,6 @@ spec:
       containers:
         - name: neo-flask-container
           image: jyl2027/neo_api:1.0
+          command: ["flask", "run", "--host=0.0.0.0", "--port=5000"]
           ports:
             - containerPort: 5000
