@@ -1,17 +1,10 @@
 #!/usr/bin/env python3
 import json
 import logging
-import requests
 import redis
 import socket
-import uuid
 import os
-import csv
-import numpy as np
-import sys
-import io
-import time
-import pprint
+import re
 from datetime import datetime, timezone
 from hotqueue import HotQueue
 import pandas as pd
@@ -54,14 +47,13 @@ def fetch_neo_data():
     except FileNotFoundError:
         return 'NEO file not found'
     try:
-        
+        # apply functions to create a minimum and maximum diameter column for use in later route
         data['Minimum Diameter'] = data['Diameter'].apply(create_min_diam_column)
         data['Maximum Diameter'] = data['Diameter'].apply(create_max_diam_column)
         
-
+        # save data in redis
         for idx, row in data.iterrows():
             dict_data = {'Object' : row['Object'], 'Close-Approach (CA) Date' : row['Close-Approach (CA) Date'], 'CA DistanceNominal (au)' : row['CA DistanceNominal (au)'], 'CA DistanceMinimum (au)' : row['CA DistanceMinimum (au)'], 'V relative(km/s)' : row['V relative(km/s)'], 'V infinity(km/s)':  row['V infinity(km/s)'], 'H(mag)' : row['H(mag)'], 'Diameter' : row['Diameter'],'Rarity' : row['Rarity'], 'Minimum Diameter' : row['Minimum Diameter'], 'Maximum Diameter' : row['Maximum Diameter']}
-            
             rd.set(row['Close-Approach (CA) Date'], json.dumps(dict_data))
 
         if len(rd.keys('*')) == len(data):
@@ -90,11 +82,13 @@ def return_neo_data() -> str:
     for key in rd.keys('*'):
         key = key.decode('utf-8')
         try:
+            # save data in dict
             val = json.loads(rd.get(key).decode('utf-8'))
             dat[key] = val
         except:
             logging.error(f'Error retrieving data at {key}')
     logging.debug("All data parsed")
+    # return as JSON string
     return json.dumps(dat, ensure_ascii=False, sort_keys=True)
 
 @app.route('/data', methods = ["DELETE"])
@@ -153,6 +147,7 @@ def get_data_by_year(year: str) -> dict:
     dat = {}
     for key in rd.keys('*'):
         key = key.decode('utf-8')
+        # check is year matches
         if key.split('-')[0] == year:
             dat[key] = json.loads(rd.get(key).decode('utf-8'))
             logging.debug(f"Loading data associated with key: {key}")
@@ -231,7 +226,7 @@ def query_velocity() -> dict:
         dat: A dictionary of NEO data entries within the specified velocity range.
               If an error occurs, returns an error message string instead.
     """
-
+    # ensure parameters are valid
     if not (request.args.get('min').isnumeric() and request.args.get('max').isnumeric()):
         logging.warning('Invalid input: non-numeric min or max velocity.')
         return 'invalid date range entered'
@@ -249,101 +244,13 @@ def query_velocity() -> dict:
         key = key.decode('utf-8')
         try:
             neo = json.loads(rd.get(key).decode('utf-8'))
-
+            # check velocity
             if min_velocity <= float(neo.get('V relative(km/s)')) <= max_velocity:
                 dat[key] = json.loads(rd.get(key).decode('utf-8'))
         except Exception as e:
             logging.error(f'Error processing key {key}: {e}')
 
     return dat 
-
-@app.route('/jobs', methods=['POST'])
-def create_job() -> Response:
-    """
-    This function is a API route that creates a new job
-
-    Args:
-        None
-    
-    Returns:
-        The function returns a Flask json reponse of the created job or if it failed to create the job
-    """
-
-    logging.debug("Creating job...")
-    if not request.json:
-        return jsonify("Error, invalid input for job")
-    
-    # Data packet must be json
-    params = request.get_json()
-    
-    start_date = params.get("start_date")
-    end_date = params.get("end_date")
-
-    if start_date is None or end_date is None:
-        return jsonify("Error missing start_date or end_date parameters")
-
-    # Check if ID's are valid
-    keys = rd.keys()
-    ID = []
-    logging.info("Filtering out Dates... ")
-    for key in keys:
-        # Decode the Key
-        ID.append(key.decode('utf-8'))
-
-    if ID is None:
-            return jsonify("Error: no Data in Redis")
-    
-    # Add a job
-    job = add_job(start_date, end_date)
-
-    logging.debug(f"Job created and queued successfully.")
-    return jsonify(job)
-
-@app.route('/jobs', methods=['GET'])
-def list_jobs() -> Response:
-    """
-    This function is a API route that lists all the job IDs
-
-    Args:
-        None
-
-    Returns:
-        The function returns all of the existing job ID's as a Flask json response
-    """
-    logging.debug("Listing job ID's...")
-
-    job_ids = []
-    job_keys = jdb.keys()
-
-    if not job_keys:
-        logging.warning("No IDs found in Redis")
-        return jsonify("No job ID's currently")
-    
-    for key in job_keys:
-        job_ids.append(key.decode('utf-8'))
-    
-    logging.debug("All job ID's found successfully")
-    return jsonify(job_ids)
-
-@app.route('/jobs/<jobid>', methods=['GET'])
-def get_job(jobid: str) -> Response:
-    """
-    This function is a API route that retrieves job details by ID
-
-    Args:
-        jobid is the ID of the job you want to get information about as a string
-
-    Returns:
-        The function returns all of the job information for the given job ID as a Flask json response
-    """
-    logging.debug("Retrieving job details...")
-
-    job = get_job_by_id(jobid)
-
-    if not job:
-        return jsonify("Error job not found")
-    
-    return jsonify(job)
 
 @app.route('/data/max_diam/<max_diameter>', methods=['GET'])
 def query_diameter(max_diameter: float) -> Response:
@@ -444,8 +351,6 @@ def get_timeliest_neos(count: int) -> dict:
         except Exception as e:
             logging.error(f"Error decoding Redis data for key {key}: {e}")
 
-    #logging.info(ordered_dict_dat)
-
     # initialize dict to hold cleaned keys (without the uncertainty part)
     cleaned_dict = {}
     logging.debug("Cleaning and parsing timestamps...")
@@ -477,6 +382,105 @@ def get_timeliest_neos(count: int) -> dict:
 
     return results
 
+@app.route('/jobs', methods=['POST'])
+def create_job() -> Response:
+    """
+    This function is a API route that creates a new job
+
+    Args:
+        None
+    
+    Returns:
+        The function returns a Flask json reponse of the created job or if it failed to create the job
+    """
+
+    logging.debug("Creating job...")
+    if not request.json:
+        return jsonify("Error, invalid input for job")
+    
+    # Data packet must be json
+    params = request.get_json()
+    
+    start_date = params.get("start_date")
+    end_date = params.get("end_date")
+    kind = params.get('kind')
+
+    re_pattern = r'^\d{4}-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\d{2}$'
+
+    # check parameters for validity
+    if not (re.match(re_pattern, start_date)) or not (re.match(re_pattern, end_date)) or (kind not in ("1","2")):
+        return 'Invalid date or kind parameter entered\n'
+
+    if start_date is None or end_date is None or kind is None:
+        return jsonify("Error missing start_date or end_date parameters or kind parameters\n")
+    
+    if (kind == '2') and (start_date.split('-')[0] != end_date.split('-')[0]):
+        return 'For Job 2, the start and end dates must be in the same month'
+
+    # Check if ID's are valid
+    keys = rd.keys()
+    ID = []
+    logging.info("Filtering out Dates... ")
+    for key in keys:
+        # Decode the Key
+        ID.append(key.decode('utf-8'))
+
+    if ID is None:
+        return jsonify("Error: no Data in Redis")
+    
+    # Add a job
+    job = add_job(start_date, end_date, kind)
+
+    logging.debug(f"Job created and queued successfully.")
+    return jsonify(job)
+
+@app.route('/jobs', methods=['GET'])
+def list_jobs() -> Response:
+    """
+    This function is a API route that lists all the job IDs
+
+    Args:
+        None
+
+    Returns:
+        The function returns all of the existing job ID's as a Flask json response
+    """
+    logging.debug("Listing job ID's...")
+
+    job_ids = []
+    job_keys = jdb.keys()
+
+    if not job_keys:
+        logging.warning("No IDs found in Redis")
+        return jsonify("No job ID's currently")
+    # get keys in jobs database
+    for key in job_keys:
+        job_ids.append(key.decode('utf-8'))
+    
+    logging.debug("All job ID's found successfully")
+    return jsonify(job_ids)
+
+@app.route('/jobs/<jobid>', methods=['GET'])
+def get_job(jobid: str) -> Response:
+    """
+    This function is a API route that retrieves job details by ID
+
+    Args:
+        jobid is the ID of the job you want to get information about as a string
+
+    Returns:
+        The function returns all of the job information for the given job ID as a Flask json response
+    """
+    logging.debug("Retrieving job details...")
+
+    job = get_job_by_id(jobid)
+
+    if not job:
+        return jsonify("Error job not found")
+    
+    return jsonify(job)
+
+
 @app.route('/results/<job_id>', methods = ['GET'])
 def get_results(job_id : str) -> Response:
     '''
@@ -504,11 +508,77 @@ def get_results(job_id : str) -> Response:
         return "Job still in progress"
 
 
-# @app.route('/help', methods = ["GET"])
-# def get_help():
+@app.route('/help', methods=['GET'])
+def print_routes():
+    """
+    This function provides a general understanding
+    of how to call each endpoint and if parameters are required.
+    """
 
-#     help = "cURL routes:" \
-#     " To view data: "
+    all_routes = {}
+
+    all_routes["/data"] = [
+        "GET request: returns data in the Redis database.",
+        "POST request: fills data into Redis database.",
+        "To curl GET: /data",
+        "To curl POST: -X POST /data"
+    ]
+
+    all_routes["/data/<year>"] = [
+        "Query route: input a year to get all NEOs spotted during that year.",
+        "To curl: /data/<input_year>"
+    ]
+
+    all_routes["/data/date"] = [
+        "Returns all years and times for all NEOs."
+    ]
+
+    all_routes["/data/distance"] = [
+        "Query route: returns NEOs based on min and max distance (AU).",
+        "Parameters needed: min and max.",
+        "To curl: /data/distance?min=<value>&max=<value>"
+    ]
+
+    all_routes["/data/velocity_query"] = [
+        "Query route: returns NEOs based on min and max velocity (km/s).",
+        "Parameters needed: min and max.",
+        "To curl: /data/velocity_query?min=<value>&max=<value>"
+    ]
+    
+    all_routes["/data/<max_diameter>"] = [
+        "GET request: returns all NEOs with max diameter less than the input.",
+        "Parameter needed: float/int.",
+        "Return type: list of dictionaries.",
+        "To curl: /data/<max_diameter>"
+    ]
+
+    all_routes["/data/<count>"] = [
+        "GET request: returns the x biggest NEOs where x is given input.",
+        "Parameter: integer.",
+        "Return type: list of dictionaries.",
+        "To curl: /data/<count>"
+    ]
+
+    all_routes['/now/<count>'] = [
+        "GET request: returns the x closest NEO's in time."
+        "Parameter: integer."
+        "Return type: integer"
+        "To curl: /now/<count>"
+    ]
+
+    all_routes["/jobs"] = [
+        "GET request: returns all jobs on the queue with their status.",
+        "POST request: creates a new job to add to the queue.",
+        "To curl GET: /jobs",
+        "To curl POST: -X POST /jobs"
+    ]
+
+    all_routes["/jobs/<jobid>"] = [
+        "GET request: returns status of a specific job based on job ID.",
+        "To curl: /jobs/<jobid>"
+    ]
+
+    return jsonify(all_routes)
         
 
     
