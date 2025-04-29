@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neo-flask-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: neo-flask-app
+  template:
+    metadata:
+      labels:
+        app: neo-flask-app
+    spec:
+      containers:
+        - name: neo-flask-container
+          image: jyl2027/neo_api:1.0
+          ports:
+            - containerPort: 5000
