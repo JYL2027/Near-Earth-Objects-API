@@ -1,18 +1,10 @@
 #!/usr/bin/env python3
 import json
 import logging
-import requests
 import redis
 import socket
-import uuid
 import os
-import csv
-import numpy as np
-import sys
-import io
 import re
-import time
-import pprint
 from datetime import datetime, timezone
 from hotqueue import HotQueue
 import pandas as pd
@@ -258,100 +250,6 @@ def query_velocity() -> dict:
 
     return dat 
 
-@app.route('/jobs', methods=['POST'])
-def create_job() -> Response:
-    """
-    This function is a API route that creates a new job
-
-    Args:
-        None
-    
-    Returns:
-        The function returns a Flask json reponse of the created job or if it failed to create the job
-    """
-
-    logging.debug("Creating job...")
-    if not request.json:
-        return jsonify("Error, invalid input for job")
-    
-    # Data packet must be json
-    params = request.get_json()
-    
-    start_date = params.get("start_date")
-    end_date = params.get("end_date")
-    kind = params.get('kind')
-
-    re_pattern = r'^\d{4}-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\d{2}$'
-
-    if not (re.match(re_pattern, start_date)) or not (re.match(re_pattern, end_date)) or (kind not in ("1","2")):
-        return 'Invalid date or kind parameter entered\n'
-
-    if start_date is None or end_date is None or kind is None:
-        return jsonify("Error missing start_date or end_date parameters or kind parameters\n")
-
-    # Check if ID's are valid
-    keys = rd.keys()
-    ID = []
-    logging.info("Filtering out Dates... ")
-    for key in keys:
-        # Decode the Key
-        ID.append(key.decode('utf-8'))
-
-    if ID is None:
-        return jsonify("Error: no Data in Redis")
-    
-    # Add a job
-    job = add_job(start_date, end_date, kind)
-
-    logging.debug(f"Job created and queued successfully.")
-    return jsonify(job)
-
-@app.route('/jobs', methods=['GET'])
-def list_jobs() -> Response:
-    """
-    This function is a API route that lists all the job IDs
-
-    Args:
-        None
-
-    Returns:
-        The function returns all of the existing job ID's as a Flask json response
-    """
-    logging.debug("Listing job ID's...")
-
-    job_ids = []
-    job_keys = jdb.keys()
-
-    if not job_keys:
-        logging.warning("No IDs found in Redis")
-        return jsonify("No job ID's currently")
-    
-    for key in job_keys:
-        job_ids.append(key.decode('utf-8'))
-    
-    logging.debug("All job ID's found successfully")
-    return jsonify(job_ids)
-
-@app.route('/jobs/<jobid>', methods=['GET'])
-def get_job(jobid: str) -> Response:
-    """
-    This function is a API route that retrieves job details by ID
-
-    Args:
-        jobid is the ID of the job you want to get information about as a string
-
-    Returns:
-        The function returns all of the job information for the given job ID as a Flask json response
-    """
-    logging.debug("Retrieving job details...")
-
-    job = get_job_by_id(jobid)
-
-    if not job:
-        return jsonify("Error job not found")
-    
-    return jsonify(job)
-
 @app.route('/data/max_diam/<max_diameter>', methods=['GET'])
 def query_diameter(max_diameter: float) -> Response:
     """
@@ -483,6 +381,101 @@ def get_timeliest_neos(count: int) -> dict:
     logging.info(f"Retrieved {len(results)} closest NEOs.")
 
     return results
+
+@app.route('/jobs', methods=['POST'])
+def create_job() -> Response:
+    """
+    This function is a API route that creates a new job
+
+    Args:
+        None
+    
+    Returns:
+        The function returns a Flask json reponse of the created job or if it failed to create the job
+    """
+
+    logging.debug("Creating job...")
+    if not request.json:
+        return jsonify("Error, invalid input for job")
+    
+    # Data packet must be json
+    params = request.get_json()
+    
+    start_date = params.get("start_date")
+    end_date = params.get("end_date")
+    kind = params.get('kind')
+
+    re_pattern = r'^\d{4}-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\d{2}$'
+
+    if not (re.match(re_pattern, start_date)) or not (re.match(re_pattern, end_date)) or (kind not in ("1","2")):
+        return 'Invalid date or kind parameter entered\n'
+
+    if start_date is None or end_date is None or kind is None:
+        return jsonify("Error missing start_date or end_date parameters or kind parameters\n")
+
+    # Check if ID's are valid
+    keys = rd.keys()
+    ID = []
+    logging.info("Filtering out Dates... ")
+    for key in keys:
+        # Decode the Key
+        ID.append(key.decode('utf-8'))
+
+    if ID is None:
+        return jsonify("Error: no Data in Redis")
+    
+    # Add a job
+    job = add_job(start_date, end_date, kind)
+
+    logging.debug(f"Job created and queued successfully.")
+    return jsonify(job)
+
+@app.route('/jobs', methods=['GET'])
+def list_jobs() -> Response:
+    """
+    This function is a API route that lists all the job IDs
+
+    Args:
+        None
+
+    Returns:
+        The function returns all of the existing job ID's as a Flask json response
+    """
+    logging.debug("Listing job ID's...")
+
+    job_ids = []
+    job_keys = jdb.keys()
+
+    if not job_keys:
+        logging.warning("No IDs found in Redis")
+        return jsonify("No job ID's currently")
+    
+    for key in job_keys:
+        job_ids.append(key.decode('utf-8'))
+    
+    logging.debug("All job ID's found successfully")
+    return jsonify(job_ids)
+
+@app.route('/jobs/<jobid>', methods=['GET'])
+def get_job(jobid: str) -> Response:
+    """
+    This function is a API route that retrieves job details by ID
+
+    Args:
+        jobid is the ID of the job you want to get information about as a string
+
+    Returns:
+        The function returns all of the job information for the given job ID as a Flask json response
+    """
+    logging.debug("Retrieving job details...")
+
+    job = get_job_by_id(jobid)
+
+    if not job:
+        return jsonify("Error job not found")
+    
+    return jsonify(job)
+
 
 @app.route('/results/<job_id>', methods = ['GET'])
 def get_results(job_id : str) -> Response:
