@@ -22,11 +22,13 @@ jdb = redis.Redis(host=REDIS_IP, port=6379, db=2)
 rdb = redis.Redis(host=REDIS_IP, port=6379, db=3)
 
 # Set logging
-log_level_str = os.environ.get("LOG_LEVEL", "ERROR").upper()
+log_level_str = os.environ.get("LOG_LEVEL", "DEBUG").upper()
 log_level = getattr(logging, log_level_str, logging.ERROR)
 
 format_str=f'[%(asctime)s {socket.gethostname()}] %(filename)s:%(funcName)s:%(lineno)s - %(levelname)s: %(message)s'
 logging.basicConfig(level=log_level, format=format_str)
+logging.getLogger("matplotlib").setLevel(logging.WARNING)
+
 
 
 def clean_to_date_only(time: str) -> str:
@@ -39,7 +41,7 @@ def clean_to_date_only(time: str) -> str:
     Returns:
         str: The date (YYYY-MMM-DD).
     '''
-    logging.debug("Begin cleaning date")
+    # logging.debug("Begin cleaning date")
     if not time:
         return " "
 
@@ -49,7 +51,7 @@ def clean_to_date_only(time: str) -> str:
 
     # Split off the time part and keep only the date
     parts = time.split()
-    logging.debug("Completed cleaning date")
+    # logging.debug("Completed cleaning date")
     if parts:
         return parts[0]  
     else:
@@ -67,7 +69,7 @@ def parse_date(date_str: str) -> datetime:
         Returns the date format as a datetime object
     '''
     try:
-        logging.debug("Parsing date and converting to datetime...") 
+        # logging.debug("Parsing date and converting to datetime...") 
         return datetime.strptime(date_str.strip(), "%Y-%b-%d")
     except ValueError:
         raise ValueError(f"Unrecognized date format: {date_str}")
@@ -101,21 +103,28 @@ def do_work(jobid: str) -> None:
         job_data = json.loads(job_raw)
         start_date_str = job_data.get('start')
         end_date_str = job_data.get('end')
+        kind = job_data.get('kind')
 
         start_date = parse_date(start_date_str)
         end_date = parse_date(end_date_str)
+
+        logging.info(start_date)
+        logging.info(end_date)
 
     except Exception as e:
         raise ValueError(f"Invalid job data: {str(e)}")
         
     velocities = []
     distances = []
+    mags = []
+    raritys = []
+    days = []
     processed_count = 0
 
 
     for key in rd.keys('*'):
         try:
-            logging.debug("Going through Redis and retrieving data...")
+            # logging.debug("Going through Redis and retrieving data...")
             key_str = key.decode('utf-8')
             neo_raw = rd.get(key)
             if not neo_raw:
@@ -139,14 +148,20 @@ def do_work(jobid: str) -> None:
             continue
 
         # Check date range
-        logging.debug(f"Checking date range of {neo_date}")
+        # logging.debug(f"Checking date range of {neo_date}")
         if start_date <= neo_date <= end_date:
             try:
                 velocity = float(neo.get("V relative(km/s)", 0))
                 distance = float(neo.get("CA DistanceNominal (au)", 
                                 neo.get("CA DistanceMinimum (au)", 0)))
+                mag = float(neo.get('H(mag)', 0))
+                rar = float(neo.get('Rarity', 0))
                 velocities.append(velocity)
                 distances.append(distance)
+                mags.append(mag)
+                raritys.append(rar)
+                days.append(int(neo_date.day))
+
                 processed_count += 1
             except (ValueError, TypeError) as e:
                 logging.warning(f"Skipping {key_str}: invalid data {str(e)}")
@@ -156,21 +171,41 @@ def do_work(jobid: str) -> None:
     if not velocities or not distances:
         raise ValueError("No valid NEO data found in date range")
     
-    # Generate plot
-    plt.figure(figsize=(12, 7))
-    hb = plt.hexbin(distances, velocities, 
-            gridsize=30,
-            cmap='viridis',
-            mincnt=1,
-            edgecolors='none')
-    plt.colorbar(hb, label='NEO Count')
-    plt.title(f'NEO Close Approach Distance vs Relative Velocity: {start_date_str} to {end_date_str}')
-    plt.xlabel('Close Approach Distance (AU)')
-    plt.ylabel('Relative Velocity (km/s)')
-    
-    # Save plot to image and store in Redis
-    logging.debug("Saving plot to Redis")
-    plt.savefig(f'/app/{jobid}_plot.png')
+
+    if kind == '1':
+        # Generate plot
+        plt.figure(figsize=(12, 7))
+        hb = plt.hexbin(distances, velocities, 
+                gridsize=30,
+                cmap='viridis',
+                mincnt=1,
+                edgecolors='none')
+        plt.colorbar(hb, label='NEO Count')
+        plt.title(f'NEO Close Approach Distance vs Relative Velocity: {start_date_str} to {end_date_str}')
+        plt.xlabel('Close Approach Distance (AU)')
+        plt.ylabel('Relative Velocity (km/s)')
+        
+        # Save plot to image and store in Redis
+        logging.debug("Saving plot to Redis")
+        plt.savefig(f'/app/{jobid}_plot.png')
+
+    elif kind == '2':
+        min_mag = min(mags)
+        max_mag = max(mags)
+        
+        norm_mags = [(mag - min_mag) / (max_mag - min_mag) * 100 + 1 for mag in mags]
+        plt.figure(figsize=(12,7))
+        scatter = plt.scatter(days, velocities, s= norm_mags, c = raritys)
+        plt.legend(*scatter.legend_elements(), title = "Rarity")
+        plt.ylim(0,30)
+        plt.xlim(0,31)
+        plt.xlabel('Day of Month')
+        plt.ylabel('V relative(km/s)')
+        plt.title(f"NEO's Approaching {start_date.month} {start_date.year}")
+        plt.savefig(f'/app/{jobid}_plot.png')
+
+    else:
+        logging.error('Value for kind is invalid')
 
     update_job_status(jobid, "complete")
     logging.info(f"Job {jobid} complete.")
@@ -189,8 +224,6 @@ def do_work(jobid: str) -> None:
         logging.info('saved output file to odb')
     except:
         logging.error('error pushing output file to Redis')
-
-
 
 
 if __name__ == "__main__":

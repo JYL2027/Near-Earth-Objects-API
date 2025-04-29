@@ -18,7 +18,7 @@ def _generate_jid():
     """
     return str(uuid.uuid4())
 
-def _instantiate_job(jid, status, start, end):
+def _instantiate_job(jid, status, start, end, kind):
     """
     Create the job object description as a python dictionary. Requires the job id,
     status, start and end parameters.
@@ -26,7 +26,8 @@ def _instantiate_job(jid, status, start, end):
     return {'id': jid,
             'status': status,
             'start': start,
-            'end': end }
+            'end': end,
+            'kind': kind}
 
 def _save_job(jid, job_dict):
     """Save a job object in the Redis database."""
@@ -38,10 +39,10 @@ def _queue_job(jid):
     q.put(jid)
     return
 
-def add_job(start, end, status="submitted"):
+def add_job(start, end, kind, status="submitted"):
     """Add a job to the redis queue."""
     jid = _generate_jid()
-    job_dict = _instantiate_job(jid, status, start, end)
+    job_dict = _instantiate_job(jid, status, start, end, kind)
     _save_job(jid, job_dict)
     _queue_job(jid)
     return job_dict

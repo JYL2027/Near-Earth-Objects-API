@@ -10,6 +10,7 @@ import csv
 import numpy as np
 import sys
 import io
+import re
 import time
 import pprint
 from datetime import datetime, timezone
@@ -278,9 +279,15 @@ def create_job() -> Response:
     
     start_date = params.get("start_date")
     end_date = params.get("end_date")
+    kind = params.get('kind')
 
-    if start_date is None or end_date is None:
-        return jsonify("Error missing start_date or end_date parameters")
+    re_pattern = r'^\d{4}-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\d{2}$'
+
+    if not (re.match(re_pattern, start_date)) or not (re.match(re_pattern, end_date)) or (kind not in ("1","2")):
+        return 'Invalid date or kind parameter entered\n'
+
+    if start_date is None or end_date is None or kind is None:
+        return jsonify("Error missing start_date or end_date parameters or kind parameters\n")
 
     # Check if ID's are valid
     keys = rd.keys()
@@ -291,10 +298,10 @@ def create_job() -> Response:
         ID.append(key.decode('utf-8'))
 
     if ID is None:
-            return jsonify("Error: no Data in Redis")
+        return jsonify("Error: no Data in Redis")
     
     # Add a job
-    job = add_job(start_date, end_date)
+    job = add_job(start_date, end_date, kind)
 
     logging.debug(f"Job created and queued successfully.")
     return jsonify(job)
