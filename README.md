@@ -18,7 +18,7 @@ This project contains the following files:
    - test_worker.py: This script tests the functions that do the data analysis inside worker.py, ensuring accurate analysis.
 6. kubernetes:
    - This folder contains all necessary `yaml` files to run the Flask API on a Kubernetes cluster.
-   -     
+     
 ## Scripts:
 This folder contains three scripts for the Flask web application:
 1. **NEO_api.py (main script)**
