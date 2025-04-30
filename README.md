@@ -45,7 +45,7 @@ The dataset used in this project is sourced from the Center for Near-Earth Objec
 Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
    
 ## Launching Flask Application on Local Hardware (Username is your Docker Hub Username):
-1. **Retrieve Data**: Since this project focuses on future NEOs, please navigate to the above CNEOS website. Next, in table setting,s select `Future only` and then `Update Data`. After updating the data set, download the data as a `CSV`.
+1. **Retrieve Data**: Since this project focuses on future NEOs, please navigate to the above CNEOS website. Next, in table setting, select `Future only` and then `Update Data`. After updating the data set, download the data as a `CSV`.
 2. **Using Data**: To use the data for analysis, please first rename the downloaded data to `neo.csv`. Now please move the `neo.csv` into the `src` directory.
 3. **Build Docker image**: First, make sure everything in this project repository is in the same directory. In the terminal, please run the command: `docker build -t username/neo_api:1.0 .`
 4. **Docker Compose**: Next, use a text editor to edit the `docker-compose.yml` file. Replace the username part of the file with your docker hub username.
@@ -56,17 +56,27 @@ Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
 9. **Cleanup**: After you are done with the analysis, please run the command `docker compose down` to clear the containers.
 
 ## Launching Flask Application on Kubernetes (Username is your Docker Hub Username):
-1. **Retrieve Data**: Since this project focuses on future NEOs, please navigate to the above CNEOS website. Next, in table setting,s select `Future only` and then `Update Data`. After updating the data set, download the data as a `CSV`.
-2. **Using Data**: To use the data for analysis, please first rename the downloaded data to `neo.csv`. Now please move the `neo.csv` into the `src` directory.
+1. **Retrieve Data**: Since this project focuses on future NEOs, please navigate to the above CNEOS website. Next, in table setting, select `Future only` and then `Update Data`. After updating the data set, download the data as a `CSV`.
+2. **Using Data**: To use the data for analysis, please first rename the downloaded data to `neo.csv`. Now, please move the `neo.csv` into the `src` directory.
 3. **Build Docker image**: First, make sure everything in this project repository is in the same directory. In the terminal, please run the command: `docker build -t username/neo_api:1.0 .`
+4. **Push Image to Dockerhub**: Next, please push the image to Dockerhub using the command `Docker push username/neo_api:1.0`, where username is your Dockerhub username.
+5. **Launching Application**: To launch the application in production, please navigate to the `prod` directory inside the `kubernetes` directory. Now, please run the following commands individually: `kubectl apply -f app-prod-deployment-flask.yml`,
+`kubectl apply -f app-prod-deployment-redis.yml`,
+`kubectl apply -f app-prod-deployment-worker.yml`,
+`kubectl apply -f app-prod-ingress-flask.yml`,
+`kubectl apply -f app-prod-pvc-redis.yml`,
+`kubectl apply -f app-prod-service-flask.yml`,
+`kubectl apply -f app-prod-service-nodeport-flask.yml`,
+`kubectl apply -f app-prod-service-redis.yml`
 
-## Routes and how to interpret results:
--`curl -X POST localhost:5000/data`: This route takes the CSV-formatted data from the `neo.csv` and stores the data into Redis. Upon running this command, you will either expect a message regarding success, failure, or that data is already stored in the database.  `success loading data` and `failed to load all data into redis`.
-- `curl localhost:5000/data`: This route retrieves all of the data stored inside the Redis database. Upon running the command, you should expect to see all of the NEO objects and their data.
-- `curl -X DELETE localhost:5000/data`: This route deletes all of the data stored inside the Redis database. Upon running this command, you will either expect a message regarding success or failure in deleting all the data: `Database flushed` or `Database failed to clear`
-- `curl localhost:5000/jobs -X POST -d '{"start_date": "date", "end_date": "date"}' -H "Content-Type: application/json"`:
-- `curl localhost:5000/jobs`: This route will return all of the job IDs created by the user when posting a job. 
-- `curl localhost:5000/jobs/<jobid>`: This route returns data about a certain job. It will include information about the id, start, and end parameters. Most importantly, it will also include the status of the job, ranging from `submitted`, `in progress`, and `complete`. To run this command, replace `<jobid>` with a valid job ID, which you can find using the `/jobs` route. An example output where the job was completed is shown below:
+
+## Routes and how to interpret results (If running on local hardware, please curl `localhost:5000`; if on kubernetes, please curl `<tacc username>-flask.coe332.tacc.cloud`):
+-`curl -X POST <host>/data`: This route takes the CSV-formatted data from the `neo.csv` and stores the data into Redis. Upon running this command, you will either expect a message regarding success, failure, or that data is already stored in the database.  `success loading data` and `failed to load all data into redis`.
+- `curl` <host>/data`: This route retrieves all of the data stored inside the Redis database. Upon running the command, you should expect to see all of the NEO objects and their data.
+- `curl -X DELETE <host>/data`: This route deletes all of the data stored inside the Redis database. Upon running this command, you will either expect a message regarding success or failure in deleting all the data: `Database flushed` or `Database failed to clear`
+- `curl <host>/jobs -X POST -d '{"start_date": "date", "end_date": "date"}' -H "Content-Type: application/json"`:
+- `curl <host>/jobs`: This route will return all of the job IDs created by the user when posting a job. 
+- `curl <host>/jobs/<jobid>`: This route returns data about a certain job. It will include information about the id, start, and end parameters. Most importantly, it will also include the status of the job, ranging from `submitted`, `in progress`, and `complete`. To run this command, replace `<jobid>` with a valid job ID, which you can find using the `/jobs` route. An example output where the job was completed is shown below:
   ```json
    {
   "end": "2095-Oct-27",
