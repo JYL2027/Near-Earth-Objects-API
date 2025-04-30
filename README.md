@@ -20,7 +20,7 @@ This project contains the following files:
    - This folder contains all necessary `yaml` files to run the Flask API on a Kubernetes cluster.
      
 ## Scripts:
-This folder contains three scripts for the Flask web application:
+This folder contains the following scripts for the Flask web application:
 1. **NEO_api.py (main script)**
 This script contains routes that use the GET, DELETE, and POST methods to retrieve or delete data you want to analyze or interpret. Based on your route, the script will either retrieve the whole data set to store in Redis or delete the data sets from Redis. Beyond those functionalities, the script allows for analysis and exploration of the dataset. The script can also allow you to create jobs to the API where the parameters are a range of valid dates, retrieve job IDs, and check on the info about a certain job. Lastly, the script enables you to retrieve the results of a certain job, given the job ID. 
 2. **jobs.py**
