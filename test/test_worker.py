@@ -1,5 +1,7 @@
 import pytest
 import numpy as np
+from pytest import approx
+
 from datetime import datetime
 from utils import (
     create_min_diam_column,
@@ -22,7 +24,7 @@ def test_min_diam_with_nan():
 # ---- Tests for create_max_diam_column ----
 
 def test_max_diam_with_uncertainty():
-    assert create_max_diam_column("12.3 ± 0.4 km") == 12.7
+    assert create_max_diam_column("12.3 ± 0.4 km") == approx(12.7, rel=1e-9)
 
 def test_max_diam_without_uncertainty():
     assert create_max_diam_column("12.3 km") == "12.3"
