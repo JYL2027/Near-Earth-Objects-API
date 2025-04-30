@@ -112,7 +112,7 @@ def test_create_job_route():
     response = requests.post(f"{BASE_URL}/jobs", json=job_data)
     assert response.status_code == 200
     job = response.json()
-    assert "job_id" in job  # Ensure that a job ID is returned
+    assert "id" in job  # Ensure that a job ID is returned
 
 def test_list_jobs_route():
     response = requests.get(f"{BASE_URL}/jobs")
