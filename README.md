@@ -70,7 +70,7 @@ Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
 `kubectl apply -f app-prod-service-redis.yml`
 
 
-## Routes and how to interpret results (Local hardware replace <host> with `localhost:5000`; if on kubernetes, please replace <host> with `<tacc username>-flask.coe332.tacc.cloud`):
+## Routes and how to interpret results (Local hardware replace `<host>` with `localhost:5000`; if on kubernetes, please replace `<host>` with `<tacc username>-flask.coe332.tacc.cloud`):
 -`curl -X POST <host>/data`: This route takes the CSV-formatted data from the `neo.csv` and stores the data into Redis. Upon running this command, you will either expect a message regarding success, failure, or that data is already stored in the database.  `success loading data` and `failed to load all data into redis`.
 - `curl` <host>/data`: This route retrieves all of the data stored inside the Redis database. Upon running the command, you should expect to see all of the NEO objects and their data.
 - `curl -X DELETE <host>/data`: This route deletes all of the data stored inside the Redis database. Upon running this command, you will either expect a message regarding success or failure in deleting all the data: `Database flushed` or `Database failed to clear`
