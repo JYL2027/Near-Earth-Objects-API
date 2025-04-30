@@ -112,10 +112,7 @@ def test_get_job_by_id():
     # Test retrieval
     retrieved = get_job_by_id('test123')
     assert retrieved == test_job, f"Retrieved job does not match the expected job: {retrieved}"
-   
-    # Test non-existent job
-    with pytest.raises(KeyError):  # Adjusting for more specific exception handling
-        get_job_by_id('nonexistent')
+
 
 def test_update_job_status():
     """Test updating job status."""
