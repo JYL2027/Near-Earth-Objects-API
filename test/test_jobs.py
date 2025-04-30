@@ -15,17 +15,18 @@ from jobs import (
 
 @pytest.fixture(autouse=True)
 def clean_redis():
-    """Fixture to clean Redis databases before each test"""
-    rd.flushdb()
-    jdb.flushdb()
-    rdb.flushdb()
+    """Fixture to clean Redis databases before each test."""
+    # Mocking Redis calls for testing purposes
+    rd.flushdb = MagicMock()
+    jdb.flushdb = MagicMock()
+    rdb.flushdb = MagicMock()
     yield
     rd.flushdb()
     jdb.flushdb()
     rdb.flushdb()
 
 def test_generate_jid():
-    """Test job ID generation creates valid UUIDs"""
+    """Test job ID generation creates valid UUIDs."""
     jid = _generate_jid()
     assert isinstance(jid, str)
     assert len(jid) == 36
@@ -34,22 +35,31 @@ def test_generate_jid():
     assert str(uuid_obj) == jid
 
 def test_instantiate_job():
-    """Test job dictionary creation"""
-    job = _instantiate_job("test123", "submitted", "HGNC:1", "HGNC:2")
+    """Test job dictionary creation with dates and kind as 1 or 2."""
+    # Using date format like '2016-Oct-05'
+    start_date = "2016-Oct-05"
+    end_date = "2016-Oct-06"
+    
+    job = _instantiate_job("test123", "submitted", start_date, end_date, 1)
     assert job == {
         'id': 'test123',
         'status': 'submitted',
-        'start': 'HGNC:1',
-        'end': 'HGNC:2'
+        'start': start_date,
+        'end': end_date,
+        'kind': 1
     }
 
 def test_save_and_get_job():
-    """Test saving and retrieving a job"""
+    """Test saving and retrieving a job."""
+    start_date = "2016-Oct-05"
+    end_date = "2016-Oct-06"
+    
     test_job = {
         'id': 'test123',
         'status': 'submitted',
-        'start': 'HGNC:1',
-        'end': 'HGNC:2'
+        'start': start_date,
+        'end': end_date,
+        'kind': 1
     }
     _save_job('test123', test_job)
    
@@ -59,26 +69,35 @@ def test_save_and_get_job():
     assert json.loads(saved_data) == test_job
 
 def test_add_job():
-    """Test adding a new job"""
-    job = add_job("HGNC:1", "HGNC:2")
+    """Test adding a new job."""
+    start_date = "2016-Oct-05"
+    end_date = "2016-Oct-06"
+    
+    # Added the 'kind' argument as either 1 or 2
+    job = add_job(start_date, end_date, 1)
    
     assert isinstance(job, dict)
     assert 'id' in job
     assert job['status'] == 'submitted'
+    assert job['kind'] == 1  # Verifying 'kind' field
    
     # Verify saved in Redis
     saved_data = jdb.get(job['id'])
     assert saved_data is not None
-    assert json.loads(saved_data)['start'] == "HGNC:1"
+    assert json.loads(saved_data)['start'] == start_date
 
 def test_get_job_by_id():
-    """Test retrieving job by ID"""
-    # First add a test job
+    """Test retrieving job by ID."""
+    # First add a test job with kind as 1
+    start_date = "2016-Oct-05"
+    end_date = "2016-Oct-06"
+    
     test_job = {
         'id': 'test123',
         'status': 'submitted',
-        'start': 'HGNC:1',
-        'end': 'HGNC:2'
+        'start': start_date,
+        'end': end_date,
+        'kind': 1
     }
     jdb.set('test123', json.dumps(test_job))
    
@@ -87,17 +106,21 @@ def test_get_job_by_id():
     assert retrieved == test_job
    
     # Test non-existent job
-    with pytest.raises(Exception):
+    with pytest.raises(KeyError):  # Adjusting for more specific exception handling
         get_job_by_id('nonexistent')
 
 def test_update_job_status():
-    """Test updating job status"""
+    """Test updating job status."""
     # Add test job
+    start_date = "2016-Oct-05"
+    end_date = "2016-Oct-06"
+    
     test_job = {
         'id': 'test123',
         'status': 'submitted',
-        'start': 'HGNC:1',
-        'end': 'HGNC:2'
+        'start': start_date,
+        'end': end_date,
+        'kind': 1
     }
     jdb.set('test123', json.dumps(test_job))
    
@@ -107,10 +130,10 @@ def test_update_job_status():
     # Verify update
     updated = json.loads(jdb.get('test123'))
     assert updated['status'] == 'processing'
-    assert updated['start'] == 'HGNC:1'  # Other fields unchanged
+    assert updated['start'] == start_date  # Other fields unchanged
 
 def test_job_result_storage():
-    """Test storing and retrieving job results"""
+    """Test storing and retrieving job results."""
     test_result = {"output": "success", "data": [1, 2, 3]}
    
     # Store result
