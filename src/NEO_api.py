@@ -231,8 +231,11 @@ def query_velocity() -> dict:
         logging.warning('Invalid input: non-numeric min or max velocity.')
         return 'invalid date range entered'
     
-    min_velocity = float(request.args.get('min'))
-    max_velocity = float(request.args.get('max'))
+    try:
+        min_velocity = float(request.args.get('min'))
+        max_velocity = float(request.args.get('max'))
+    except ValueError:
+        return 'Invalid input', 400
 
     if min_velocity > max_velocity:
         logging.warning('Invalid input: min velocity greater than max velocity.')
@@ -449,7 +452,7 @@ def list_jobs() -> Response:
 
     job_ids = []
     job_keys = jdb.keys()
-
+    
     if not job_keys:
         logging.warning("No IDs found in Redis")
         return jsonify("No job ID's currently")
@@ -474,9 +477,10 @@ def get_job(jobid: str) -> Response:
     logging.debug("Retrieving job details...")
 
     job = get_job_by_id(jobid)
+    job = get_job_by_id(jobid)
 
     if not job:
-        return jsonify("Error job not found")
+        return jsonify({"error": "Job not found"}), 404
     
     return jsonify(job)
 

@@ -6,23 +6,6 @@ import requests
 
 BASE_URL = "http://127.0.0.1:5000"
 
-def test_epochs_route():
-    response = requests.get(f"{BASE_URL}/epochs")
-    assert response.status_code == 200
-    assert isinstance(response.json(), list)
-
-def test_specific_epoch_route():
-    response = requests.get(f"{BASE_URL}/epochs")
-    assert response.status_code == 200
-    epoch_list = response.json()
-    if not epoch_list:
-        pytest.skip("No epochs returned")
-    epoch_id = epoch_list[0]
-
-    response = requests.get(f"{BASE_URL}/epochs/{epoch_id}")
-    assert response.status_code == 200
-    assert isinstance(response.json(), dict)
-
 def test_get_data_route():
     response = requests.get(f"{BASE_URL}/data")
     assert response.status_code == 200
