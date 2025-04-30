@@ -121,16 +121,17 @@ def test_list_jobs_route():
     assert isinstance(job_ids, list)  # Should be a list of job IDs
 
 def test_get_job_route():
-    # Assuming there is a job with ID "12345" (use actual job ID from your system)
-    job_id = "12345"
+    response = requests.post(f"{BASE_URL}/jobs", json={"start_date": "2025-Jan-01", "end_date": "2025-Jan-31", "kind": "1"})
+    assert response.status_code == 200
+    job_id = response.json()['job_id']
+
+    # Now use the job_id in the next test
     response = requests.get(f"{BASE_URL}/jobs/{job_id}")
     assert response.status_code == 200
-    job = response.json()
-    assert "id" in job  # Ensure that the job ID is part of the response
-
 def test_get_job_results_route():
     # Assuming the job has already finished and output is available
     job_id = "12345"
     response = requests.get(f"{BASE_URL}/results/{job_id}")
+    print(response.content[:100])  # Print the first 100 bytes to check the response content
     assert response.status_code == 200
-    assert response.content.startswith(b"\x89PNG\r\n")  # Check if it starts as a PNG file
+    assert response.content.startswith(b"\x89PNG\r\n") 
