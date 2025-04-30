@@ -51,14 +51,14 @@ Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
 4. **Docker Compose**: Next, use a text editor to edit the `docker-compose.yml` file. Replace the username part of the file with your docker hub username.
 5. **Local Data Storage**: In the same project directory, create a folder called `data` so that the data written to flask can also be stored on the local machine. 
 6. **Run Docker**: To run the container, please run the command: `docker compose up -d`. The `-d` flags allow the containers to run in the background.
-7. **Final Steps**: Now that you have the container running, you must use curl commands to access routes to get the data you want. To run all the routes successfully please first store the data into Redis using the POST command.
+7. **Final Steps**: Now that you have the container running, you must use curl commands to access routes to get the data you want. To run all the routes successfully, please first store the data into Redis using the POST command.
 8. **Pytest**: If you want to run the pytests, first use the command `docker ps`. Identify the container ID of the flask app. Then run the command `docker exec -it <ID> bash` where `<ID>` is the ID of the container. From there, you can run `pytest test_NEO_api.py` or `pytest test_worker.py` or `pytest test_jobs.py`, depending on the test you want to run. 
 9. **Cleanup**: After you are done with the analysis, please run the command `docker compose down` to clear the containers.
 
 ## Launching Flask Application on Kubernetes (Username is your Docker Hub Username):
 1. **Retrieve Data**: Since this project focuses on future NEOs, please navigate to the above CNEOS website. Next, in table setting, select `Future only` and then `Update Data`. After updating the data set, download the data as a `CSV`.
 2. **Using Data**: To use the data for analysis, please first rename the downloaded data to `neo.csv`. Now, please move the `neo.csv` into the `src` directory.
-3. **Build Docker image**: First, make sure everything in this project repository is in the same directory. In the terminal, please run the command: `docker build -t username/neo_api:1.0 .`
+3. **Build Docker image**: First, ensure everything in this project repository is in the same directory. In the terminal, please run the command: `docker build -t username/neo_api:1.0 .`
 4. **Push Image to Dockerhub**: Next, please push the image to Dockerhub using the command `Docker push username/neo_api:1.0`, where username is your Dockerhub username.
 5. **Launching Application**: To launch the application in production, please navigate to the `prod` directory inside the `kubernetes` directory. Now, please run the following commands individually: `kubectl apply -f app-prod-deployment-flask.yml`,
 `kubectl apply -f app-prod-deployment-redis.yml`,
@@ -70,7 +70,7 @@ Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
 `kubectl apply -f app-prod-service-redis.yml`
 
 
-## Routes and how to interpret results (If running on local hardware, please curl `localhost:5000`; if on kubernetes, please curl `<tacc username>-flask.coe332.tacc.cloud`):
+## Routes and how to interpret results (Local hardware replace <host> with `localhost:5000`; if on kubernetes, please replace <host> with `<tacc username>-flask.coe332.tacc.cloud`):
 -`curl -X POST <host>/data`: This route takes the CSV-formatted data from the `neo.csv` and stores the data into Redis. Upon running this command, you will either expect a message regarding success, failure, or that data is already stored in the database.  `success loading data` and `failed to load all data into redis`.
 - `curl` <host>/data`: This route retrieves all of the data stored inside the Redis database. Upon running the command, you should expect to see all of the NEO objects and their data.
 - `curl -X DELETE <host>/data`: This route deletes all of the data stored inside the Redis database. Upon running this command, you will either expect a message regarding success or failure in deleting all the data: `Database flushed` or `Database failed to clear`
@@ -89,4 +89,4 @@ Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
 
 
 ## AI Use (Chat GPT): 
-
+1. AI generated the pytests for the api, worker, and job scripts. 
