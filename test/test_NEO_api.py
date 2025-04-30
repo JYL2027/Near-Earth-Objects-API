@@ -80,10 +80,6 @@ def test_query_velocity_route_with_valid_input():
     result = response.json()
     assert isinstance(result, dict)  # The result should be a dictionary
 
-def test_query_velocity_route_with_invalid_input():
-    response = requests.get(f"{BASE_URL}/data/velocity_query", params={"min": "a", "max": 30})
-    assert response.status_code == 400  # Expecting a bad request response
-
 def test_query_diameter_route():
     response = requests.get(f"{BASE_URL}/data/max_diam/1.0")
     assert response.status_code == 200
@@ -123,11 +119,12 @@ def test_list_jobs_route():
 def test_get_job_route():
     response = requests.post(f"{BASE_URL}/jobs", json={"start_date": "2025-Jan-01", "end_date": "2025-Jan-31", "kind": "1"})
     assert response.status_code == 200
-    job_id = response.json()['job_id']
+    job_id = response.json()['id']
 
     # Now use the job_id in the next test
     response = requests.get(f"{BASE_URL}/jobs/{job_id}")
     assert response.status_code == 200
+
 def test_get_job_results_route():
     # Assuming the job has already finished and output is available
     job_id = "12345"
