@@ -33,7 +33,10 @@ def test_biggest_neos_route():
 
 def test_now_neos_route():
     response = requests.get(f"{BASE_URL}/now/3")
-    print(response.json()) 
+    
+    print(f"Response status code: {response.status_code}")
+    print(f"Response body: {response.json()}")
+    
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
