@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-worker-deployment
+  labels:
+    app: test-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-worker
+  template:
+    metadata:
+      labels:
+        app: test-worker
+    spec:
+      containers:
+        - name: test-worker-container
+          image: jyl2027/neo_api:1.0
+          imagePullPolicy: Always
+          command: ["python", "worker.py"]
+          env:
+            - name: REDIS_HOST
+              value: "test-redis-db"
+            - name: REDIS_PORT
+              value: "6379"
