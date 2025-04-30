@@ -1,6 +1,8 @@
 import pytest
 import json
 import uuid
+from unittest.mock import MagicMock
+
 from jobs import (
     rd, jdb, rdb,
     _generate_jid,
