@@ -33,6 +33,7 @@ def test_biggest_neos_route():
 
 def test_now_neos_route():
     response = requests.get(f"{BASE_URL}/now/3")
+    print(response.json()) 
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
@@ -125,7 +126,7 @@ def test_get_job_route():
     response = requests.get(f"{BASE_URL}/jobs/{job_id}")
     assert response.status_code == 200
     job = response.json()
-    assert "job_id" in job  # Ensure that the job ID is part of the response
+    assert "id" in job  # Ensure that the job ID is part of the response
 
 def test_get_job_results_route():
     # Assuming the job has already finished and output is available

@@ -231,6 +231,9 @@ def query_velocity() -> dict:
         logging.warning('Invalid input: non-numeric min or max velocity.')
         return 'invalid date range entered'
     
+    if not min.isdigit() or not max.isdigit():
+        return jsonify({"Invalid input"}), 400
+
     try:
         min_velocity = float(request.args.get('min'))
         max_velocity = float(request.args.get('max'))
