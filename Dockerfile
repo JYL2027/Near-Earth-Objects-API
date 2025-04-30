@@ -11,5 +11,9 @@ COPY src/NEO_api.py /app/NEO_api.py
 COPY src/worker.py /app/worker.py
 COPY src/neo.csv /app/neo.csv
 COPY src/utils.py /app/utils.py
+COPY test/test_jobs.py /app/test_jobs.py
+COPY test/test_NEO_api.py /app/test_NEO_api.py
+COPY test/test_worker.py /app/test_worker.py
+
 
 ENV FLASK_APP=NEO_api.py
