@@ -48,8 +48,11 @@ def add_job(start, end, kind, status="submitted"):
     return job_dict
 
 def get_job_by_id(jid):
-    """Return job dictionary given jid"""
-    return json.loads(jdb.get(jid))
+    """Return job dictionary given jid."""
+    job_data = jdb.get(jid)
+    if job_data is None:
+        return None  # Return None if job doesn't exist
+    return json.loads(job_data)
 
 def update_job_status(jid, status):
     """Update the status of job with job id `jid` to status `status`."""
