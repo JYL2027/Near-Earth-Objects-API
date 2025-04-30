@@ -20,10 +20,10 @@ spec:
           ports:
             - containerPort: 6379
           volumeMounts:
-            - mountPath: /data
-              name: redis-storage
+            - name: neo-jackyyl-data
+              mountPath: /data 
       volumes:
-        - name: redis-storage
+        - name: neo-jackyyl-data
           persistentVolumeClaim:
             claimName: neo-jackyyl-data
           
