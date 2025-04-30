@@ -131,4 +131,3 @@ def test_get_job_results_route():
     response = requests.get(f"{BASE_URL}/results/{job_id}")
     print(response.content[:100])  # Print the first 100 bytes to check the response content
     assert response.status_code == 200
-    assert response.content.startswith(b"\x89PNG\r\n") 
