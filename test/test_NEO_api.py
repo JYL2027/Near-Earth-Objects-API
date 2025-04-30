@@ -1,7 +1,7 @@
 import pytest
 import json
 from NEO_api import app 
-import pd
+import pandas as pd
 
 @pytest.fixture
 def client():
