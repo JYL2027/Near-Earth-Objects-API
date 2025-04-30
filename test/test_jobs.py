@@ -101,11 +101,17 @@ def test_get_job_by_id():
         'end': end_date,
         'kind': 1
     }
+    
+    # Save the job into Redis
     jdb.set('test123', json.dumps(test_job))
+   
+    # Ensure the job is saved
+    saved_data = jdb.get('test123')
+    assert saved_data is not None, "Failed to save job in Redis."
    
     # Test retrieval
     retrieved = get_job_by_id('test123')
-    assert retrieved == test_job
+    assert retrieved == test_job, f"Retrieved job does not match the expected job: {retrieved}"
    
     # Test non-existent job
     with pytest.raises(KeyError):  # Adjusting for more specific exception handling
