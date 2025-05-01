@@ -418,16 +418,22 @@ def create_job() -> Response:
     # check parameters for validity
 
     if start_date is None or end_date is None or kind is None:
-        return jsonify("Error missing start_date or end_date parameters or kind parameters\n")
-
-    elif not (re.match(re_pattern, start_date)) or not (re.match(re_pattern, end_date)) or (kind not in ("1","2")):
-        return 'Invalid date or kind parameter entered\n'
+        return "Error missing start_date or end_date parameters or kind parameters\n"
     
-    elif (kind == '2') and ((start_date.split('-')[0] != end_date.split('-')[0]) or (start_date.split('-')[1] != end_date.split('-')[1])):
-        return 'For Job 2, the start and end dates must be in the same month\n'
+    if not (re.match(re_pattern, start_date)) or not (re.match(re_pattern, end_date)) or (kind not in ("1","2")):
+        return "Invalid date or kind parameter entered\n"
+    
+    try:
+        start_dt = datetime.strptime(start_date, "%Y-%b-%d")
+        end_dt = datetime.strptime(end_date, "%Y-%b-%d")
+    except Exception:
+        return "Could not parse dates\n"
 
-    elif int(start_date.split('-')[2]) > int(end_date.split('-')[2]):
-           return "Start date must be before end date\n"
+    if start_dt > end_dt:
+        return "Start date must be before end date\n"
+
+    if (kind == '2') and ( (start_dt.year != end_dt.year) or (start_dt.month != end_dt.month) ):
+        return 'For Job 2, the start and end dates must be in the same month\n'
 
     # Check if ID's are valid
     keys = rd.keys()

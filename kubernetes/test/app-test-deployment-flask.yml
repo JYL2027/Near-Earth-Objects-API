@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: test-container
-          image: username/neo_api:1.0
+          image: mjt2005/neo_api:1.0
           imagePullPolicy: Always
           command: ["flask", "run", "--host=0.0.0.0", "--port=5000"]
           ports:
