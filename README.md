@@ -60,8 +60,9 @@ Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
 2. **Using Data**: To use the data for analysis, please first rename the downloaded data to `neo.csv`. Now, please move the `neo.csv` into the `src` directory.
 3. **Build Docker image**: First, ensure everything in this project repository is in the same directory. In the terminal, please run the command: `docker build -t username/neo_api:1.0 .`
 4. **Push Image to Dockerhub**: Next, please push the image to Dockerhub using the command `docker push username/neo_api:1.0`.
-5. **Edit yaml files**: Now, please open each `yaml` file with a text editor. Replace `username` with your DockerHub username and `tacc` with your Tacc username. 
-6. **Launching Application**: To launch the application in production, please navigate to the `prod` directory inside the `kubernetes` directory. Now, please run the following commands individually: `kubectl apply -f app-prod-deployment-flask.yml`,
+5. **Docker Compose**: Next, use a text editor to edit the `docker-compose.yml` file. Replace the username part of the file with your Docker Hub username.
+6. **Edit yaml files**: Now, please open each `yaml` file with a text editor. Replace `username` with your DockerHub username and `tacc` with your Tacc username. 
+7. **Launching Application**: To launch the application in production, please navigate to the `prod` directory inside the `kubernetes` directory. Now, please run the following commands individually: `kubectl apply -f app-prod-deployment-flask.yml`,
 `kubectl apply -f app-prod-deployment-redis.yml`,
 `kubectl apply -f app-prod-deployment-worker.yml`,
 `kubectl apply -f app-prod-ingress-flask.yml`,
@@ -69,7 +70,7 @@ Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
 `kubectl apply -f app-prod-service-flask.yml`,
 `kubectl apply -f app-prod-service-nodeport-flask.yml`,
 `kubectl apply -f app-prod-service-redis.yml`
-7. **Cleanup**: After using the appliction please use the following commands for cleanup. `kubctrl delete all --all`, `kubctrl delete ingress --all -n <your namespace>`, and `kubctrl delete pvc --all`
+8. **Cleanup**: After using the appliction please use the following commands for cleanup. `kubctrl delete all --all`, `kubctrl delete ingress --all -n <your namespace>`, and `kubctrl delete pvc --all`
 
 ## Routes and how to interpret results (Local hardware replace `<host>` with `localhost:5000`; if on kubernetes, please replace `<host>` with `<tacc username>-flask.coe332.tacc.cloud`):
 -`curl -X POST <host>/data`: This route takes the CSV-formatted data from the `neo.csv` and stores the data into Redis. Upon running this command, you will either expect a message regarding success, failure, or that data is already stored in the database.  `success loading data` and `failed to load all data into redis`.
