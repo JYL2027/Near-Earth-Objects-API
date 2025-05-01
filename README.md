@@ -69,7 +69,7 @@ Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
 `kubectl apply -f app-prod-service-flask.yml`,
 `kubectl apply -f app-prod-service-nodeport-flask.yml`,
 `kubectl apply -f app-prod-service-redis.yml`
-
+7. **Cleanup**: After using the appliction please use the following commands for cleanup. `kubctrl delete all --all`, `kubctrl delete ingress --all -n <your namespace>`, and `kubctrl delete pvc --all`
 
 ## Routes and how to interpret results (Local hardware replace `<host>` with `localhost:5000`; if on kubernetes, please replace `<host>` with `<tacc username>-flask.coe332.tacc.cloud`):
 -`curl -X POST <host>/data`: This route takes the CSV-formatted data from the `neo.csv` and stores the data into Redis. Upon running this command, you will either expect a message regarding success, failure, or that data is already stored in the database.  `success loading data` and `failed to load all data into redis`.
@@ -90,7 +90,5 @@ Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
 When posting a job, you have the choice between Job 1 and Job 2, specified with the 'kind' parameter. Job 1 creates a hexbin graph portraying the density of relative velocities and the near approach distances of NEOs in that range. This job will accept any range of dates. Job 2 creates a scatter plot showcasing each NEO that will approach in that month, with the size of the dot corresponding to the magnitude and the color of the dot corresponding to its rarity. This job is intended to be used on the NEO data for a given month, so it will only accept start and end dates that are in the same month. An example job posting is shown below:
 ``curl <host>/jobs -X POST -d '{"start_date": "2026-Apr-01", "end_date": "2026-Apr-30", "kind": "2"}' -H "Content-Type: application/json"``
 
-
-
 ## AI Use (Chat GPT): 
-1. AI generated the pytests for the api, worker, and job scripts. 
+1. AI generated the pytests for the api, worker, and job scripts. AI was used for this because we don't have adequate experience working with Flask unittests and working with datetime.
