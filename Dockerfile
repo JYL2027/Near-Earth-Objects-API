@@ -9,7 +9,7 @@ RUN pip install -r /app/requirements.txt
 COPY src/jobs.py /app/jobs.py  
 COPY src/NEO_api.py /app/NEO_api.py
 COPY src/worker.py /app/worker.py
-COPY src/neo.csv /app/neo.csv
+COPY data/neo.csv /app/neo.csv
 COPY src/utils.py /app/utils.py
 COPY test/test_jobs.py /app/test_jobs.py
 COPY test/test_NEO_api.py /app/test_NEO_api.py
