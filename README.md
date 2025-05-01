@@ -32,7 +32,7 @@ This script contains function definitions that are used in the api and worker mo
 
 ## System Diagram:
 <img src="NEO_System_Diagram.png" alt="My Image" width="800">
-The system diagram above depicts how the scripts and files in the directory interact with one another. It depicts how the separate containers are run and describes how they interact with each other as a Flask web API interacting with the user to return data summaries from data from the web. 
+The system diagram above depicts how the scripts and files in the directory interact with one another. It depicts how the separate containers are run and describes how they interact with each other as a Flask web API interacting with the user to return data summaries from data downloaded from the web. 
 
 ## Logging:
 Please note that the current logging level is set to WARNING. If you wish to change this, open `docker-compose.yml` with a text or code editor and replace the WARNING in the environment LOG_LEVEL sections to whichever level you want to run. (DEBUG, INFO, WARNING, ERROR, CRITICAL) 
