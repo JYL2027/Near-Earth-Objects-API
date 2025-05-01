@@ -20,10 +20,10 @@ spec:
           ports:
             - containerPort: 6379
           volumeMounts:
-            - name: neo-jackyyl-data
+            - name: neo-mjt2005-data
               mountPath: /data 
       volumes:
-        - name: neo-jackyyl-data
+        - name: neo-mjt2005-data
           persistentVolumeClaim:
-            claimName: neo-jackyyl-data
+            claimName: neo-mjt2005-data
           
