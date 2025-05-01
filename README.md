@@ -46,7 +46,7 @@ Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
    
 ## Launching Flask Application on Local Hardware (Username is your Docker Hub Username):
 1. **Retrieve Data**: Since this project focuses on future NEOs, please navigate to the above CNEOS website. Next, in the table setting, select `Future only` and then `Update Data`. After updating the data set, download the data as a `CSV`.
-2. **Using Data**: To use the data for analysis, please first rename the downloaded data to `neo.csv`. Now, please move the `neo.csv` into the `src` directory.
+2. **Using Data**: To use the data for analysis, please first rename the downloaded data to `neo.csv`. Now, please move the `neo.csv` into the `data` directory.
 3. **Build Docker image**: First, make sure everything in this project repository is in the same directory. In the terminal, please run the command: `docker build -t username/neo_api:1.0 .`
 4. **Docker Compose**: Next, use a text editor to edit the `docker-compose.yml` file. Replace the username part of the file with your Docker Hub username.
 5. **Local Data Storage**: In the same project directory, create a folder called `data` so that the data written to Flask can also be stored on the local machine. 
