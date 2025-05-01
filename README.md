@@ -31,7 +31,7 @@ This script works to analyze the data and update jobs submitted by users and alt
 This script contains function definitions that are used in the api and worker modules.
 
 ## System Diagram:
-<img src="NEO_System_Diagram (1).png" alt="My Image" width="800">
+<img src="NEO_System_Diagram (1).png" alt="My Image" width="850">
 The system diagram above depicts how the scripts and files in the directory interact with one another. It depicts how the separate containers are run and describes how they interact with each other as a Flask web API interacting with the user to return data summaries from data downloaded from the web. 
 
 ## Logging:
