@@ -75,9 +75,9 @@ Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
 -`curl -X POST <host>/data`: This route takes the CSV-formatted data from the `neo.csv` and stores the data into Redis. Upon running this command, you will either expect a message regarding success, failure, or that data is already stored in the database.  `success loading data` and `failed to load all data into redis`.
 - `curl` <host>/data`: This route retrieves all of the data stored inside the Redis database. Upon running the command, you should expect to see all of the NEO objects and their data.
 - `curl -X DELETE <host>/data`: This route deletes all of the data stored inside the Redis database. Upon running this command, you will either expect a message regarding success or failure in deleting all the data: `Database flushed` or `Database failed to clear`
-- `curl <host>/jobs -X POST -d '{"start_date": "date", "end_date": "date"}' -H "Content-Type: application/json"`:
+- `curl <host>/jobs -X POST -d '{"start_date": "<date>", "end_date": "<date>", "<kind>": "<kind>"}' -H "Content-Type: application/json"`:
 - `curl <host>/jobs`: This route will return all of the job IDs created by the user when posting a job. 
-- `curl <host>/jobs/<jobid>`: This route returns data about a certain job. It will include information about the id, start, and end parameters. Most importantly, it will also include the status of the job, ranging from `submitted`, `in progress`, and `complete`. To run this command, replace `<jobid>` with a valid job ID, which you can find using the `/jobs` route. An example output where the job was completed is shown below:
+- `curl <host>/jobs/<jobid>`: This route returns data about a certain job. It will include information about the id, start, end, and kind parameters. Most importantly, it will also include the status of the job, ranging from `submitted`, `in progress`, and `complete`. To run this command, replace `<jobid>` with a valid job ID, which you can find using the `/jobs` route. An example output where the job was completed is shown below:
   ```json
    {
   "end": "2095-Oct-27",
@@ -86,6 +86,9 @@ Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
   "status": "complete"
    }
 - `curl localhost:5000/results/<jobid>`: This route will return the results of a certain job ID created by the user. This API will return a hexbin graph comparing relative velocities and nominal distances of NEOs. To run this command, replace `<jobid>` with a valid job ID, which you can find using the `/jobs` route. An example output where the result was retrieved is shown below:
+## Two Different Jobs
+When posting a job, you have the choice between Job 1 and Job 2, specified with the 'kind' parameter. Job 1 creates a hexbin graph portraying the density of relative velocities and the near approach distances of NEOs in that range. This job will accept any range of dates. Job 2 creates a scatter plot showcasing each NEO that will approach in that month, with the size of the dot corresponding to the magnitude and the color of the dot corresponding to its rarity. This job is intended to be used on the NEO data for a given month, so it will only accept start and end dates that are in the same month. An example job posting is shown below:
+``curl <host>/jobs -X POST -d '{"start_date": "2026-Apr-01", "end_date": "2026-Apr-30", "kind": "2"}' -H "Content-Type: application/json"``
 
 
 
