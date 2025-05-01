@@ -13,7 +13,7 @@ from flask import Flask, jsonify, request, Response, send_file
 from utils import create_min_diam_column, create_max_diam_column
 
 # Set logging
-log_level_str = os.environ.get("LOG_LEVEL", "ERROR").upper()
+log_level_str = os.environ.get("LOG_LEVEL", "DEBUG").upper()
 log_level = getattr(logging, log_level_str, logging.ERROR)
 
 format_str=f'[%(asctime)s {socket.gethostname()}] %(filename)s:%(funcName)s:%(lineno)s - %(levelname)s: %(message)s'
@@ -142,7 +142,7 @@ def get_data_by_year(year: str) -> dict:
 
     logging.debug(f"Retrieving data for year: {year}")
     if not year.isnumeric():
-        return 'invalid year entered'
+        return 'Invalid year entered\n'
     
     dat = {}
     for key in rd.keys('*'):
@@ -153,7 +153,7 @@ def get_data_by_year(year: str) -> dict:
             logging.debug(f"Loading data associated with key: {key}")
     return dat
 
-@app.route('/data/distance', methods=['GET'])
+@app.route('/data/distance_query', methods=['GET'])
 def get_distances() -> Response:
     """
     Get all close-approach distances with optional filtering
@@ -229,7 +229,7 @@ def query_velocity() -> dict:
     # ensure parameters are valid
     if not (request.args.get('min').isnumeric() and request.args.get('max').isnumeric()):
         logging.warning('Invalid input: non-numeric min or max velocity.')
-        return 'invalid date range entered'
+        return 'Invalid date range entered\n'
 
     try:
         min_velocity = float(request.args.get('min'))
@@ -239,7 +239,7 @@ def query_velocity() -> dict:
 
     if min_velocity > max_velocity:
         logging.warning('Invalid input: min velocity greater than max velocity.')
-        return 'min velocity must be less than max velocity'
+        return 'min velocity must be less than max velocity\n'
 
     dat = {}
     
@@ -268,6 +268,8 @@ def query_diameter(max_diameter: float) -> Response:
             All the NEOs less than the max_diameter. Compares the input
             to the max diameter of each NEO since it is a range.
     """
+    if not max_diameter.isnumeric():
+        return "Invalid diameter entered\n"
 
     logging.debug(f"Finding NEOs with a diameter less than {max_diameter}")
     max_diameter = float(max_diameter)
@@ -306,7 +308,7 @@ def find_biggest_neo(count: int) -> Response:
         num_neo = int(count)
     except ValueError:
         logging.error("Invalid count provided, could not convert to integer.")
-        return jsonify('error: Invalid count value. Must be an integer.')
+        return jsonify('Error: Invalid count value. Must be an integer.')
 
     dat = []
     logging.debug("Retrieving NEO data from Redis...")
@@ -337,6 +339,9 @@ def get_timeliest_neos(count: int) -> dict:
         Returns:
             results (JSON) - a JSON dictionary contanining the n closest NEO's in time
     '''
+    if not count.isnumeric():
+        return 'Invalid count entered\n'
+
     logging.debug(f"Requested {count} closest NEOs in time to now.")
 
     # convert count to int
@@ -411,14 +416,18 @@ def create_job() -> Response:
     re_pattern = r'^\d{4}-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\d{2}$'
 
     # check parameters for validity
-    if not (re.match(re_pattern, start_date)) or not (re.match(re_pattern, end_date)) or (kind not in ("1","2")):
-        return 'Invalid date or kind parameter entered\n'
 
     if start_date is None or end_date is None or kind is None:
         return jsonify("Error missing start_date or end_date parameters or kind parameters\n")
+
+    elif not (re.match(re_pattern, start_date)) or not (re.match(re_pattern, end_date)) or (kind not in ("1","2")):
+        return 'Invalid date or kind parameter entered\n'
     
-    if (kind == '2') and (start_date.split('-')[0] != end_date.split('-')[0]):
-        return 'For Job 2, the start and end dates must be in the same month'
+    elif (kind == '2') and ((start_date.split('-')[0] != end_date.split('-')[0]) or (start_date.split('-')[1] != end_date.split('-')[1])):
+        return 'For Job 2, the start and end dates must be in the same month\n'
+
+    elif int(start_date.split('-')[2]) > int(end_date.split('-')[2]):
+           return "Start date must be before end date\n"
 
     # Check if ID's are valid
     keys = rd.keys()
@@ -524,8 +533,10 @@ def print_routes():
     all_routes["/data"] = [
         "GET request: returns data in the Redis database.",
         "POST request: fills data into Redis database.",
+        "DELETE request: flushes the database holding NEO data"
         "To curl GET: /data",
         "To curl POST: -X POST /data"
+        "To curl DELETE: -X DELETE /data"
     ]
 
     all_routes["/data/<year>"] = [
@@ -534,29 +545,29 @@ def print_routes():
     ]
 
     all_routes["/data/date"] = [
-        "Returns all years and times for all NEOs."
+        "Returns the years and times for all NEOs."
     ]
 
-    all_routes["/data/distance"] = [
+    all_routes["/data/distance_query"] = [
         "Query route: returns NEOs based on min and max distance (AU).",
         "Parameters needed: min and max.",
-        "To curl: /data/distance?min=<value>&max=<value>"
+        "To curl: '/data/distance?min=<value>&max=<value>'"
     ]
 
     all_routes["/data/velocity_query"] = [
         "Query route: returns NEOs based on min and max velocity (km/s).",
-        "Parameters needed: min and max.",
-        "To curl: /data/velocity_query?min=<value>&max=<value>"
+        "Parameters needed: min and max velocities",
+        "To curl: '/data/velocity_query?min=<value>&max=<value>'"
     ]
     
-    all_routes["/data/<max_diameter>"] = [
+    all_routes["/data/max_diam/<max_diameter>"] = [
         "GET request: returns all NEOs with max diameter less than the input.",
         "Parameter needed: float/int.",
         "Return type: list of dictionaries.",
         "To curl: /data/<max_diameter>"
     ]
 
-    all_routes["/data/<count>"] = [
+    all_routes["/data/biggest_neos/<count>"] = [
         "GET request: returns the x biggest NEOs where x is given input.",
         "Parameter: integer.",
         "Return type: list of dictionaries.",
@@ -564,9 +575,9 @@ def print_routes():
     ]
 
     all_routes['/now/<count>'] = [
-        "GET request: returns the x closest NEO's in time."
-        "Parameter: integer."
-        "Return type: integer"
+        "GET request: returns the x closest NEO's in time.",
+        "Parameter: integer.",
+        "Return type: integer",
         "To curl: /now/<count>"
     ]
 
@@ -580,6 +591,11 @@ def print_routes():
     all_routes["/jobs/<jobid>"] = [
         "GET request: returns status of a specific job based on job ID.",
         "To curl: /jobs/<jobid>"
+    ]
+
+    all_routes["/results/<job_id>"] = [
+        "GET request: returns the output plot of a given job by saving it to the local directory.",
+        "To curl: /results/<job_id>"
     ]
 
     return jsonify(all_routes)

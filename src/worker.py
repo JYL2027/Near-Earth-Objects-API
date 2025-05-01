@@ -146,7 +146,7 @@ def do_work(jobid: str) -> None:
         # get min and max for use in normalizing data
         min_mag = min(mags)
         max_mag = max(mags)
-        norm_mags = [(mag - min_mag) / (max_mag - min_mag) * 100 + 1 for mag in mags]
+        norm_mags = [(mag - min_mag) / (max_mag - min_mag) * 100 + 2 for mag in mags]
         # plot data
         plt.figure(figsize=(12,7))
         # size corresponds to magnitude and color to rarity
@@ -154,9 +154,10 @@ def do_work(jobid: str) -> None:
         plt.legend(*scatter.legend_elements(), title = "Rarity")
         plt.ylim(0,30)
         plt.xlim(0,31)
+        plt.xticks(range(0,31,1))
         plt.xlabel('Day of Month')
-        plt.ylabel('V relative(km/s)')
-        plt.title(f"NEO's Approaching {start_date.month} {start_date.year}")
+        plt.ylabel('V relative (km/s)')
+        plt.title(f"NEO's Approaching {start_date.month}/{start_date.year}")
         plt.savefig(f'/app/{jobid}_plot.png')
 
     else:
