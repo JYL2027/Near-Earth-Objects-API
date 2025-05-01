@@ -45,20 +45,17 @@ def test_now_neos_route():
 
 
 def test_delete_data_route():
-    # First, let's load some data to ensure it exists
     response = requests.post(f"{BASE_URL}/data")
     assert response.status_code == 200
 
-    # Now, test the DELETE route
     response = requests.delete(f"{BASE_URL}/data")
     assert response.status_code == 200
     assert response.text == 'Database flushed\n'
 
-    # Verify that data is removed
     response = requests.get(f"{BASE_URL}/data")
     assert response.status_code == 200
     data = response.json()
-    assert len(data) == 0  # Ensure no data exists
+    assert len(data) == 0
 
 def test_get_dates_route():
     response = requests.get(f"{BASE_URL}/data/date")
@@ -127,13 +124,11 @@ def test_get_job_route():
     assert response.status_code == 200
     job_id = response.json()['id']
 
-    # Now use the job_id in the next test
     response = requests.get(f"{BASE_URL}/jobs/{job_id}")
     assert response.status_code == 200
 
 def test_get_job_results_route():
-    # Assuming the job has already finished and output is available
     job_id = "12345"
     response = requests.get(f"{BASE_URL}/results/{job_id}")
-    print(response.content[:100])  # Print the first 100 bytes to check the response content
+    print(response.content[:100])
     assert response.status_code == 200

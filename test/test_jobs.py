@@ -18,7 +18,6 @@ from jobs import (
 @pytest.fixture(autouse=True)
 def clean_redis():
     """Fixture to clean Redis databases before each test."""
-    # Mocking Redis calls for testing purposes
     rd.flushdb = MagicMock()
     jdb.flushdb = MagicMock()
     rdb.flushdb = MagicMock()
@@ -38,7 +37,6 @@ def test_generate_jid():
 
 def test_instantiate_job():
     """Test job dictionary creation with dates and kind as 1 or 2."""
-    # Using date format like '2016-Oct-05'
     start_date = "2016-Oct-05"
     end_date = "2016-Oct-06"
     
@@ -90,7 +88,6 @@ def test_add_job():
 
 def test_get_job_by_id():
     """Test retrieving job by ID."""
-    # First add a test job with kind as 1
     start_date = "2016-Oct-05"
     end_date = "2016-Oct-06"
     
@@ -102,14 +99,11 @@ def test_get_job_by_id():
         'kind': 1
     }
     
-    # Save the job into Redis
     jdb.set('test123', json.dumps(test_job))
    
-    # Ensure the job is saved
     saved_data = jdb.get('test123')
     assert saved_data is not None, "Failed to save job in Redis."
    
-    # Test retrieval
     retrieved = get_job_by_id('test123')
     assert retrieved == test_job, f"Retrieved job does not match the expected job: {retrieved}"
 
@@ -135,7 +129,7 @@ def test_update_job_status():
     # Verify update
     updated = json.loads(jdb.get('test123'))
     assert updated['status'] == 'processing'
-    assert updated['start'] == start_date  # Other fields unchanged
+    assert updated['start'] == start_date
 
 def test_job_result_storage():
     """Test storing and retrieving job results."""
@@ -144,7 +138,6 @@ def test_job_result_storage():
     # Store result
     store_job_result('job123', test_result)
    
-    # Verify storage
     stored = rdb.get('job123')
     assert stored is not None
    
@@ -152,10 +145,9 @@ def test_job_result_storage():
     stored_dict = json.loads(stored)
     assert stored_dict == test_result
    
-    # Test retrieval - parse the string if needed
     retrieved = get_job_result('job123')
     if isinstance(retrieved, str):
-        retrieved = json.loads(retrieved.replace("'", '"'))  # Handle single quotes
+        retrieved = json.loads(retrieved.replace("'", '"'))
     assert retrieved == test_result
    
     # Test non-existent result
