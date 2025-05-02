@@ -86,7 +86,17 @@ Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
   "start": "2025-Apr-16",
   "status": "complete"
    }
-- `curl localhost:5000/results/<jobid>`: This route will return the results of a certain job ID created by the user. This API will return a hexbin graph comparing relative velocities and nominal distances of NEOs. To run this command, replace `<jobid>` with a valid job ID, which you can find using the `/jobs` route. An example output where the result was retrieved is shown below:
+- `curl <host>/results/<jobid>`: This route will return the results of a certain job ID created by the user. This API will return a hexbin graph comparing relative velocities and nominal distances of NEOs. To run this command, replace `<jobid>` with a valid job ID, which you can find using the `/jobs` route. An example output where the result was retrieved is shown below:
+
+- `curl <host>/results/<jobid>`: This route will return the results of a certain job ID created by the user. This API will return a hexbin graph comparing relative velocities and nominal distances of NEOs. To run this command, replace `<jobid>` with a valid job ID, which you can find using the `/jobs` route. An example output where the result was retrieved is shown below:
+- `curl <host>/help`: This route will return all the routes in the API. It gives a brief explanation of what each route does and some instructions on how to curl the route.
+- `curl <host>/data/date`: This route returns all the dates and times for all the NEOs.
+- `curl <host>/data/<year>`: Provided a year paramater (integer) as an input, this route returns all the NEOs that will be spotted in that year.
+- `curl <host>/data/distance`: Provided a minimum(float) and maximum(float) values as inputs, this route will query through all the NEOs and return only the ones between the provided distances in astronomical units.
+- `curl <host>/data/velocity_query`: Provided a minimum(float) and maximum(float) values as inputs, this route will query through all the NEOs and return only the ones between the provided velocities in kilometers per second.
+- `curl <host>/data/max_diameter`: Provided a max diameter value as an input, this route will return all the NEOs with a max diameter less than the value provided.
+- `curl <host>/data/biggest_neos/<count>`: Provided an integer value as an input, this route will return the biggest "x" number of NEOs where "x" is the provided input. 
+- `curl <host>/now/<count>`: Provided an integer value as an input, this route will return the "x" number of NEOs closest to the current time where x is the provided input.
 ## Two Different Jobs
 When posting a job, you have the choice between Job 1 and Job 2, specified with the 'kind' parameter. Job 1 creates a hexbin graph portraying the density of relative velocities and the near approach distances of NEOs in that range. This job will accept any range of dates. Job 2 creates a scatter plot showcasing each NEO that will approach in that month, with the size of the dot corresponding to the magnitude and the color of the dot corresponding to its rarity. This job is intended to be used on the NEO data for a given month, so it will only accept start and end dates that are in the same month. An example job posting is shown below:
 ``curl <host>/jobs -X POST -d '{"start_date": "2026-Apr-01", "end_date": "2026-Apr-30", "kind": "2"}' -H "Content-Type: application/json"``
