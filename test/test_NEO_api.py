@@ -6,6 +6,14 @@ import requests
 
 BASE_URL = "http://127.0.0.1:5000"
 
+def safe_json(response):
+    try:
+        return response.json()
+    except Exception as e:
+        print("Failed to parse JSON. Status:", response.status_code)
+        print("Raw content:", response.text)
+        raise e
+    
 def test_get_data_route():
     response = requests.get(f"{BASE_URL}/data")
     assert response.status_code == 200
@@ -21,8 +29,8 @@ def test_query_velocity_route():
 def test_max_diam_route():
     response = requests.get(f"{BASE_URL}/data/max_diam/1.0")
     assert response.status_code == 200
-    data = response.json()
-    assert isinstance(data, dict) or isinstance(data, list)
+    data = safe_json(response)
+    assert isinstance(data, (dict, list))
 
 def test_biggest_neos_route():
     response = requests.get(f"{BASE_URL}/data/biggest_neos/5")
