@@ -46,7 +46,7 @@ Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
    
 ## Launching Flask Application on Local Hardware (Username is your Docker Hub Username):
 1. **Retrieve Data**: Since this project focuses on future NEOs, please navigate to the above CNEOS website. Next, in the table setting, select `Future only` and then `Update Data`. After updating the data set, download the data as a `CSV`.
-2. **Using Data**: To use the data for analysis, please first rename the downloaded data to `neo.csv`. Now, please move the `neo.csv` into the `data` directory.
+2. **Using Data**: To use the data for analysis, please first rename the downloaded data to `neo.csv`. Next, make a directory called `data`. Now, please move the `neo.csv` into the `data` directory.
 3. **Build Docker image**: First, make sure everything in this project repository is in the same directory. In the terminal, please run the command: `docker build -t username/neo_api:1.0 .`
 4. **Docker Compose**: Next, use a text editor to edit the `docker-compose.yml` file. Replace the username part of the file with your Docker Hub username.
 5. **Local Data Storage**: In the same project directory, create a folder called `data` so that the data written to Flask can also be stored on the local machine. 
@@ -57,7 +57,7 @@ Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
 
 ## Launching Flask Application on Kubernetes (Username is your Docker Hub Username):
 1. **Retrieve Data**: Since this project focuses on future NEOs, please navigate to the above CNEOS website. Next, in table setting, select `Future only` and then `Update Data`. After updating the data set, download the data as a `CSV`.
-2. **Using Data**: To use the data for analysis, please first rename the downloaded data to `neo.csv`. Now, please move the `neo.csv` into the `src` directory.
+2. **Using Data**: To use the data for analysis, please first rename the downloaded data to `neo.csv`. Next, make a directory called `data`. Now, please move the `neo.csv` into the `data` directory.
 3. **Build Docker image**: First, ensure everything in this project repository is in the same directory. In the terminal, please run the command: `docker build -t username/neo_api:1.0 .`
 4. **Push Image to Dockerhub**: Next, please push the image to Dockerhub using the command `docker push username/neo_api:1.0`.
 5. **Docker Compose**: Next, use a text editor to edit the `docker-compose.yml` file. Replace the username part of the file with your Docker Hub username.
@@ -70,7 +70,7 @@ Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
 `kubectl apply -f app-prod-service-flask.yml`,
 `kubectl apply -f app-prod-service-nodeport-flask.yml`,
 `kubectl apply -f app-prod-service-redis.yml`
-8. **Cleanup**: After using the appliction please use the following commands for cleanup. `kubctrl delete all --all`, `kubctrl delete ingress --all -n <your namespace>`, and `kubctrl delete pvc --all`
+8. **Cleanup**: After using the appliction, please use the following commands for cleanup: `kubctrl delete all --all`, `kubctrl delete ingress --all -n <your namespace>`, and `kubctrl delete pvc --all`
 
 ## Routes and how to interpret results (Local hardware replace `<host>` with `localhost:5000`; if on kubernetes, please replace `<host>` with `neo-analysis.coe332.tacc.cloud`):
 -`curl -X POST <host>/data`: This route takes the CSV-formatted data from the `neo.csv` and stores the data into Redis. Upon running this command, you will either expect a message regarding success, failure, or that data is already stored in the database.  `success loading data` and `failed to load all data into redis`.
