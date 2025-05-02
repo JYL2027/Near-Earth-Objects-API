@@ -418,22 +418,16 @@ def create_job() -> Response:
     # check parameters for validity
 
     if start_date is None or end_date is None or kind is None:
-        return "Error missing start_date or end_date parameters or kind parameters\n"
-    
-    if not (re.match(re_pattern, start_date)) or not (re.match(re_pattern, end_date)) or (kind not in ("1","2")):
-        return "Invalid date or kind parameter entered\n"
-    
-    try:
-        start_dt = datetime.strptime(start_date, "%Y-%b-%d")
-        end_dt = datetime.strptime(end_date, "%Y-%b-%d")
-    except Exception:
-        return "Could not parse dates\n"
+        return jsonify("Error missing start_date or end_date parameters or kind parameters\n")
 
-    if start_dt > end_dt:
-        return "Start date must be before end date\n"
-
-    if (kind == '2') and ( (start_dt.year != end_dt.year) or (start_dt.month != end_dt.month) ):
+    elif not (re.match(re_pattern, start_date)) or not (re.match(re_pattern, end_date)) or (kind not in ("1","2")):
+        return 'Invalid date or kind parameter entered\n'
+    
+    elif (kind == '2') and ((start_date.split('-')[0] != end_date.split('-')[0]) or (start_date.split('-')[1] != end_date.split('-')[1])):
         return 'For Job 2, the start and end dates must be in the same month\n'
+
+    elif int(start_date.split('-')[2]) > int(end_date.split('-')[2]):
+           return "Start date must be before end date\n"
 
     # Check if ID's are valid
     keys = rd.keys()
@@ -545,9 +539,9 @@ def print_routes():
         "To curl DELETE: -X DELETE /data"
     ]
 
-    all_routes["/data/<year>"] = [
+    all_routes["/data/\u003Cyear\u003E"] = [
         "Query route: input a year to get all NEOs spotted during that year.",
-        "To curl: /data/<input_year>"
+        "To curl: /data/\u003Cinput_year\u003E"
     ]
 
     all_routes["/data/date"] = [
@@ -557,34 +551,34 @@ def print_routes():
     all_routes["/data/distance_query"] = [
         "Query route: returns NEOs based on min and max distance (AU).",
         "Parameters needed: min and max.",
-        "To curl: '/data/distance?min=<value>&max=<value>'"
+        "To curl: '/data/distance?min=[value]&max=[value]'"
     ]
 
     all_routes["/data/velocity_query"] = [
         "Query route: returns NEOs based on min and max velocity (km/s).",
         "Parameters needed: min and max velocities",
-        "To curl: '/data/velocity_query?min=<value>&max=<value>'"
+        "To curl: '/data/velocity_query?min=[value]&max=[value]'"
     ]
     
-    all_routes["/data/max_diam/<max_diameter>"] = [
+    all_routes["/data/max_diam/\u003Cmax_diameter\u003E"] = [
         "GET request: returns all NEOs with max diameter less than the input.",
         "Parameter needed: float/int.",
         "Return type: list of dictionaries.",
-        "To curl: /data/<max_diameter>"
+        "To curl: /data/\u003Cmax_diameter\u003E"
     ]
 
-    all_routes["/data/biggest_neos/<count>"] = [
+    all_routes["/data/biggest_neos/\u003Ccount\u003E"] = [
         "GET request: returns the x biggest NEOs where x is given input.",
         "Parameter: integer.",
         "Return type: list of dictionaries.",
-        "To curl: /data/<count>"
+        "To curl: /data/\u003Ccount\u003E"
     ]
 
-    all_routes['/now/<count>'] = [
+    all_routes['/now/\u003Ccount\u003E'] = [
         "GET request: returns the x closest NEO's in time.",
         "Parameter: integer.",
         "Return type: integer",
-        "To curl: /now/<count>"
+        "To curl: /now/\u003Ccount\u003E"
     ]
 
     all_routes["/jobs"] = [
@@ -594,14 +588,14 @@ def print_routes():
         "To curl POST: -X POST /jobs"
     ]
 
-    all_routes["/jobs/<jobid>"] = [
+    all_routes["/jobs/\u003Cjobid\u003E"] = [
         "GET request: returns status of a specific job based on job ID.",
-        "To curl: /jobs/<jobid>"
+        "To curl: /jobs/\u003Cjobid\u003E"
     ]
 
-    all_routes["/results/<job_id>"] = [
+    all_routes["/results/\u003Cjob_id\u003E"] = [
         "GET request: returns the output plot of a given job by saving it to the local directory.",
-        "To curl: /results/<job_id>"
+        "To curl: /results/\u003Cjob_id\u003E"
     ]
 
     return jsonify(all_routes)
