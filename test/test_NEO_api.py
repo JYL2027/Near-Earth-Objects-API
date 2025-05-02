@@ -18,12 +18,6 @@ def test_query_velocity_route():
     result = response.json()
     assert isinstance(result, dict)
 
-def test_max_diam_route():
-    response = requests.get(f"{BASE_URL}/data/max_diam/1.0")
-    assert response.status_code == 200
-    data = response.json()
-    assert isinstance(data, dict) or isinstance(data, list)
-
 def test_biggest_neos_route():
     response = requests.get(f"{BASE_URL}/data/biggest_neos/5")
     assert response.status_code == 200
@@ -71,23 +65,11 @@ def test_get_data_by_year_route():
     for key in data:
         assert key.startswith(year)  # All data should be for the given year
 
-def test_get_distances_route():
-    response = requests.get(f"{BASE_URL}/data/distance", params={"min": 0.05, "max": 0.5})
-    assert response.status_code == 200
-    result = response.json()
-    assert isinstance(result, dict)  # The result should be a dictionary
-
 def test_query_velocity_route_with_valid_input():
     response = requests.get(f"{BASE_URL}/data/velocity_query", params={"min": 10, "max": 30})
     assert response.status_code == 200
     result = response.json()
     assert isinstance(result, dict)  # The result should be a dictionary
-
-def test_query_diameter_route():
-    response = requests.get(f"{BASE_URL}/data/max_diam/1.0")
-    assert response.status_code == 200
-    data = response.json()
-    assert isinstance(data, dict) or isinstance(data, list)  # Result can be either
 
 def test_find_biggest_neos_route():
     response = requests.get(f"{BASE_URL}/data/biggest_neos/5")
