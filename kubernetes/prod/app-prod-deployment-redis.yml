@@ -20,10 +20,10 @@ spec:
           ports:
             - containerPort: 6379
           volumeMounts:
-            - name: neo-<tacc>-data
+            - name: neo-mjt2005-data
               mountPath: /data 
       volumes:
-        - name: neo-<tacc>-data
+        - name: neo-mjt2005-data
           persistentVolumeClaim:
-            claimName: neo-<tacc>-data
+            claimName: neo-mjt2005-data
           
