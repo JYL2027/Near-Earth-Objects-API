@@ -8,7 +8,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: "neo-analysis.coe332.tacc.cloud"
+  - host: "neo-project.coe332.tacc.cloud"
     http:
         paths:
         - pathType: Prefix
