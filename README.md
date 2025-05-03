@@ -47,9 +47,8 @@ Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
 ## Launching Flask Application on Local Hardware (Username is your Docker Hub Username):
 1. **Retrieve Data**: Since this project focuses on future NEOs, please navigate to the above CNEOS website. Next, in the table setting, select `Future only` and then `Update Data`. After updating the data set, download the data as a `CSV`.
 2. **Using Data**: To use the data for analysis, please first rename the downloaded data to `neo.csv`. Next, make a directory called `data`. Now, please move the `neo.csv` into the `data` directory.
-3. **Build Docker image**: First, make sure everything in this project repository is in the same directory. In the terminal, please run the command: `docker build -t username/neo_api:1.0 .`
-4. **Docker Compose**: Next, use a text editor to edit the `docker-compose.yml` file. Replace the username part of the file with your Docker Hub username.
-5. **Local Data Storage**: In the same project directory, create a folder called `data` so that the data written to Flask can also be stored on the local machine. 
+3. **Pull Docker image**: First, make sure everything in this project repository is in the same directory. In the terminal, please run the command: `docker pull mjt2005/neo_api:1.0`
+4. **Docker Build**: Next, use the command `docker build -t mjt2005/neo_api:1.0 .` to build the docker image.
 6. **Run Docker**: To run the container, please run the command: `docker compose up -d`. The `-d` flags allow the containers to run in the background.
 7. **Final Steps**: Now that you have the container running, you must use curl commands to access routes to get the data you want. To run all the routes successfully, please first store the data into Redis using the POST command.
 8. **Pytest**: If you want to run the pytests, first use the command `docker ps`. Identify the container ID of the flask app. Then run the command `docker exec -it <ID> bash` where `<ID>` is the ID of the container. From there, you can run `pytest test_NEO_api.py` or `pytest test_worker.py` or `pytest test_jobs.py`, depending on the test you want to run. 
@@ -58,10 +57,9 @@ Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
 ## Launching Flask Application on Kubernetes (Username is your Docker Hub Username):
 1. **Retrieve Data**: Since this project focuses on future NEOs, please navigate to the above CNEOS website. Next, in table setting, select `Future only` and then `Update Data`. After updating the data set, download the data as a `CSV`.
 2. **Using Data**: To use the data for analysis, please first rename the downloaded data to `neo.csv`. Next, make a directory called `data`. Now, please move the `neo.csv` into the `data` directory.
-3. **Build Docker image**: First, ensure everything in this project repository is in the same directory. In the terminal, please run the command: `docker build -t username/neo_api:1.0 .`
-4. **Push Image to Dockerhub**: Next, please push the image to Dockerhub using the command `docker push username/neo_api:1.0`.
-5. **Docker Compose**: Next, use a text editor to edit the `docker-compose.yml` file. Replace the username part of the file with your Docker Hub username.
-6. **Edit yaml files**: Now, please open each `yaml` file with a text editor. Replace `username` with your DockerHub username and `tacc` with your Tacc username. 
+3. **Pull Docker image**: First, ensure everything in this project repository is in the same directory. In the terminal, please run the command: `docker pull mjt2005/neo_api:1.0`
+5. **Docker Build**: Next, use the command `docker build -t mjt2005/neo_api:1.0 .` to build the docker image.
+6. **Edit yaml files**: Now, please open each `yaml` file with a text editor. Replace `tacc` with your Tacc username or namespace. 
 7. **Launching Application**: To launch the application in production, please navigate to the `prod` directory inside the `kubernetes` directory. Now, please run the following commands individually: `kubectl apply -f app-prod-deployment-flask.yml`,
 `kubectl apply -f app-prod-deployment-redis.yml`,
 `kubectl apply -f app-prod-deployment-worker.yml`,
