@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: neo-mjt2005-data
+  name: neo-<tacc>-data
 spec:
   accessModes:
     - ReadWriteOnce
