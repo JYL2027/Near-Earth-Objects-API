@@ -48,7 +48,7 @@ Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
 1. **Retrieve Data**: Since this project focuses on future NEOs, please navigate to the above CNEOS website. Next, in the table setting, select `Future only` and then `Update Data`. After updating the data set, download the data as a `CSV`.
 2. **Using Data**: To use the data for analysis, please first rename the downloaded data to `neo.csv`. Next, make a directory called `data`. Now, please move the `neo.csv` into the `data` directory.
 3. **Pull Docker image**: First, make sure everything in this project repository is in the same directory. In the terminal, please run the command: `docker pull jyl2027/neo_api:1.0`
-4. **Run Docker**: To run the container, please run the command: `docker compose up -d`. The `-d` flags allow the containers to run in the background.
+4. **Run Docker**: To run the container, please run the command: `docker compose up --build -d`. The `-d` flags allow the containers to run in the background.
 5. **Final Steps**: Now that you have the container running, you must use curl commands to access routes to get the data you want. To run all the routes successfully, please first store the data into Redis using the POST command.
 6. **Pytest**: If you want to run the pytests, first use the command `docker ps`. Identify the container ID of the flask app. Then run the command `docker exec -it <ID> bash` where `<ID>` is the ID of the container. From there, you can run `pytest test_NEO_api.py` or `pytest test_worker.py` or `pytest test_jobs.py`, depending on the test you want to run. Please run tests after first posting the data to Redis.
 7. **Cleanup**: After you are done with the analysis, please run the command `docker compose down` to clear the containers.
