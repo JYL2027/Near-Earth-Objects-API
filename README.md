@@ -59,7 +59,7 @@ Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
 2. **Using Data**: To use the data for analysis, please first rename the downloaded data to `neo.csv`. Next, make a directory called `data`. Now, please move the `neo.csv` into the `data` directory.
 3. **Pull Docker image**: First, ensure everything in this project repository is in the same directory. In the terminal, please run the command: `docker pull mjt2005/neo_api:1.0`
 5. **Docker Build**: Next, use the command `docker build -t mjt2005/neo_api:1.0 .` to build the docker image.
-6. **Edit yaml files**: Now, please open each `yaml` file with a text editor. Replace `tacc` with your Tacc username or namespace. 
+6. **Edit yaml files**: Now, please open each `yaml` file with a text editor. Replace all areas that say `<tacc>` with your Tacc username or namespace. 
 7. **Launching Application**: To launch the application in production, please navigate to the `prod` directory inside the `kubernetes` directory. Now, please run the following commands individually: `kubectl apply -f app-prod-deployment-flask.yml`,
 `kubectl apply -f app-prod-deployment-redis.yml`,
 `kubectl apply -f app-prod-deployment-worker.yml`,
