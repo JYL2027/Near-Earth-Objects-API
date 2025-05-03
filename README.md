@@ -57,7 +57,7 @@ Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
 1. **Retrieve Data**: Since this project focuses on future NEOs, please navigate to the above CNEOS website. Next, in table setting, select `Future only` and then `Update Data`. After updating the data set, download the data as a `CSV`.
 2. **Using Data**: To use the data for analysis, please first rename the downloaded data to `neo.csv`. Next, make a directory called `data`. Now, please move the `neo.csv` into the `data` directory.
 3. **Pull Docker image**: First, ensure everything in this project repository is in the same directory. In the terminal, please run the command: `docker pull jyl2027/neo_api:1.0`
-6. **Edit yaml files**: Now, please open each `yaml` file with a text editor. Replace all areas that say `<tacc>` with your Tacc username or namespace. 
+6. **Edit yaml files**: Now, please open the `yaml` file: `app-prod-service-redis` with a text editor. Replace all areas that say `<tacc>` with your Tacc username or namespace. 
 7. **Launching Application**: To launch the application in production, please navigate to the `prod` directory inside the `kubernetes` directory. Now, please run the following commands individually: `kubectl apply -f app-prod-deployment-flask.yml`,
 `kubectl apply -f app-prod-deployment-redis.yml`,
 `kubectl apply -f app-prod-deployment-worker.yml`,
