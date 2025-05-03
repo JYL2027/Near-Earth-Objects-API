@@ -44,21 +44,19 @@ Please note that the current Redis host IP is set to redis-db. If you would like
 The dataset used in this project is sourced from the Center for Near-Earth Object Studies (CNEOS), which tracks the times and distances of Near-Earth Objects (NEOs) from 1900 A.D. to 2200 A.D. For this project, we are focusing specifically on future NEO events. To access the data used in this project, please use the following link: https://cneos.jpl.nasa.gov/ca/. The data is public on the CNEO website and is presented in both `CSV` and `EXCEL` formats. To view them, please download them onto your computer by accessing the data links at the bottom of the page. The dataset contains approximately 16,400 entries, each corresponding to a unique NEO. Each entry includes several key fields that provide important insights into the characteristics of these objects: Close-Approach Date, CA Distance Nominal (au), CA Distance Minimum (au), V relative (km/s), V infinity (km/s), H(mag), Diameter, and Rarity.
 Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
    
-## Launching Flask Application on Local Hardware (Username is your Docker Hub Username):
+## Launching Flask Application on Local Hardware:
 1. **Retrieve Data**: Since this project focuses on future NEOs, please navigate to the above CNEOS website. Next, in the table setting, select `Future only` and then `Update Data`. After updating the data set, download the data as a `CSV`.
 2. **Using Data**: To use the data for analysis, please first rename the downloaded data to `neo.csv`. Next, make a directory called `data`. Now, please move the `neo.csv` into the `data` directory.
-3. **Pull Docker image**: First, make sure everything in this project repository is in the same directory. In the terminal, please run the command: `docker pull mjt2005/neo_api:1.0`
-4. **Docker Build**: Next, use the command `docker build -t mjt2005/neo_api:1.0 .` to build the docker image.
-6. **Run Docker**: To run the container, please run the command: `docker compose up -d`. The `-d` flags allow the containers to run in the background.
-7. **Final Steps**: Now that you have the container running, you must use curl commands to access routes to get the data you want. To run all the routes successfully, please first store the data into Redis using the POST command.
-8. **Pytest**: If you want to run the pytests, first use the command `docker ps`. Identify the container ID of the flask app. Then run the command `docker exec -it <ID> bash` where `<ID>` is the ID of the container. From there, you can run `pytest test_NEO_api.py` or `pytest test_worker.py` or `pytest test_jobs.py`, depending on the test you want to run. 
-9. **Cleanup**: After you are done with the analysis, please run the command `docker compose down` to clear the containers.
+3. **Pull Docker image**: First, make sure everything in this project repository is in the same directory. In the terminal, please run the command: `docker pull jyl2027/neo_api:1.0`
+4. **Run Docker**: To run the container, please run the command: `docker compose up -d`. The `-d` flags allow the containers to run in the background.
+5. **Final Steps**: Now that you have the container running, you must use curl commands to access routes to get the data you want. To run all the routes successfully, please first store the data into Redis using the POST command.
+6. **Pytest**: If you want to run the pytests, first use the command `docker ps`. Identify the container ID of the flask app. Then run the command `docker exec -it <ID> bash` where `<ID>` is the ID of the container. From there, you can run `pytest test_NEO_api.py` or `pytest test_worker.py` or `pytest test_jobs.py`, depending on the test you want to run. Please run tests after first posting the data to Redis.
+7. **Cleanup**: After you are done with the analysis, please run the command `docker compose down` to clear the containers.
 
-## Launching Flask Application on Kubernetes (Username is your Docker Hub Username):
+## Launching Flask Application on Kubernetes (Tacc is your Tacc Username):
 1. **Retrieve Data**: Since this project focuses on future NEOs, please navigate to the above CNEOS website. Next, in table setting, select `Future only` and then `Update Data`. After updating the data set, download the data as a `CSV`.
 2. **Using Data**: To use the data for analysis, please first rename the downloaded data to `neo.csv`. Next, make a directory called `data`. Now, please move the `neo.csv` into the `data` directory.
-3. **Pull Docker image**: First, ensure everything in this project repository is in the same directory. In the terminal, please run the command: `docker pull mjt2005/neo_api:1.0`
-5. **Docker Build**: Next, use the command `docker build -t mjt2005/neo_api:1.0 .` to build the docker image.
+3. **Pull Docker image**: First, ensure everything in this project repository is in the same directory. In the terminal, please run the command: `docker pull jyl2027/neo_api:1.0`
 6. **Edit yaml files**: Now, please open each `yaml` file with a text editor. Replace all areas that say `<tacc>` with your Tacc username or namespace. 
 7. **Launching Application**: To launch the application in production, please navigate to the `prod` directory inside the `kubernetes` directory. Now, please run the following commands individually: `kubectl apply -f app-prod-deployment-flask.yml`,
 `kubectl apply -f app-prod-deployment-redis.yml`,
@@ -70,7 +68,7 @@ Available at: (https://cneos.jpl.nasa.gov/ca/) (Accessed: 4/20/2025).
 `kubectl apply -f app-prod-service-redis.yml`
 8. **Cleanup**: After using the appliction, please use the following commands for cleanup: `kubctrl delete all --all`, `kubctrl delete ingress --all -n <your namespace>`, and `kubctrl delete pvc --all`
 
-## Routes and how to interpret results (Local hardware replace `<host>` with `localhost:5000`; if on kubernetes, please replace `<host>` with `neo-analysis.coe332.tacc.cloud`):
+## Routes and how to interpret results (Local hardware replace `<host>` with `localhost:5000`; if on kubernetes, please replace `<host>` with `neo-project.coe332.tacc.cloud`):
 - `curl -X POST <host>/data`: This route takes the CSV-formatted data from the `neo.csv` and stores the data into Redis. Upon running this command, you will either expect a message regarding success, failure, or that data is already stored in the database.  `success loading data` and `failed to load all data into redis`.
 - `curl <host>/data`: This route retrieves all of the data stored inside the Redis database. Upon running the command, you should expect to see all of the NEO objects and their data.
 - `curl -X DELETE <host>/data`: This route deletes all of the data stored inside the Redis database. Upon running this command, you will either expect a message regarding success or failure in deleting all the data: `Database flushed` or `Database failed to clear`
