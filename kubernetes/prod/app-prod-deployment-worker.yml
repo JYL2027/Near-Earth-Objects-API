@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: neo-worker-container
-          image: mjt2005/neo_api:1.0
+          image: jyl2027/neo_api:1.0
           imagePullPolicy: Always
           command: ["python", "worker.py"]
           env:
